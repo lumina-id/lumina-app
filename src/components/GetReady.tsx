@@ -1,10 +1,17 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
+import { useFaceMesh } from "../hooks/useFaceMesh";
+import GazeCursor from "./gaze/GazeCursor";
+import { useGaze } from "../context/GazeContext";
 
 export default function GetReady() {
   const videoRef = useRef<HTMLVideoElement>(null);
   const [hasPermission, setHasPermission] = useState(false);
+  const { isFaceDetected, faceCenter } = useGaze();
+  
+  // Initialize Face Mesh Hook
+  useFaceMesh(videoRef);
 
   useEffect(() => {
     const startWebcam = async () => {
@@ -32,6 +39,7 @@ export default function GetReady() {
 
   return (
     <div className="bg-white relative w-full min-h-screen flex flex-col items-center pb-20">
+      <GazeCursor />
       {/* Header */}
       <div className="w-full border-b border-[#ddd] px-4 md:px-[100px] py-[19px] flex justify-center">
         <div className="w-full max-w-[1240px] flex items-center justify-between">
@@ -112,14 +120,45 @@ export default function GetReady() {
             {/* Overlay Gradient */}
             <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-black/50" />
 
+            {/* Face Detected UI */}
+            {isFaceDetected && (
+              <>
+                {/* Green Bounding Box */}
+                <div 
+                  className="absolute w-[200px] h-[200px] border-[3px] border-[#22c55e] rounded-[24px] shadow-[0_0_20px_rgba(34,197,94,0.3)] transition-all duration-100 ease-out"
+                  style={{
+                    left: `${faceCenter.x * 100}%`,
+                    top: `${faceCenter.y * 100}%`,
+                    transform: 'translate(-50%, -50%)'
+                  }}
+                >
+                  {/* Face Detected Badge */}
+                  <div className="absolute -top-[16px] left-1/2 -translate-x-1/2 bg-[#22c55e] px-[12px] py-[4px] rounded-full shadow-md">
+                    <span className="text-white text-[12px] font-medium whitespace-nowrap">
+                      Face detected
+                    </span>
+                  </div>
+                </div>
+              </>
+            )}
+
             <p className="absolute bottom-[20px] left-1/2 -translate-x-1/2 text-white text-[14px] font-medium tracking-[-0.64px]">
               Camera preview
             </p>
           </div>
 
-          <p className="text-[#999] text-[16px] tracking-[-0.72px] text-center">
-            Adjust your position until your face is detected
-          </p>
+          {isFaceDetected ? (
+            <div className="flex items-center gap-2">
+              <span className="text-[#22c55e] text-[18px]">✓</span>
+              <p className="text-[#22c55e] text-[16px] tracking-[-0.72px] text-center font-medium">
+                Your’re in the right position!
+              </p>
+            </div>
+          ) : (
+            <p className="text-[#999] text-[16px] tracking-[-0.72px] text-center">
+              Adjust your position until your face is detected
+            </p>
+          )}
         </div>
       </div>
     </div>
