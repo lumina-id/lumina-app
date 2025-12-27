@@ -100,7 +100,7 @@ export default function GetReady() {
 
         {/* Camera Preview Section */}
         <div className="w-full flex flex-col gap-[16px] items-center">
-          <div className="relative w-[300px] h-[300px] rounded-[24px] overflow-hidden border border-[#cbd5e1] shadow-lg bg-black">
+          <div className="relative w-[650px] h-[400px] rounded-[24px] overflow-hidden border border-[#cbd5e1] shadow-lg bg-black">
             <video
               ref={videoRef}
               autoPlay

@@ -1,8 +1,11 @@
 import type { Metadata } from "next";
-import { Inter } from "next/font/google";
+import localFont from "next/font/local";
 import "./globals.css";
 
-const inter = Inter({ subsets: ["latin"] });
+const satoshi = localFont({
+  src: "../fonts/Satoshi-Variable.woff2",
+  display: "swap",
+});
 
 export const metadata: Metadata = {
   title: "Lumina",
@@ -16,7 +19,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className={inter.className}>{children}</body>
+      <body className={satoshi.className}>{children}</body>
     </html>
   );
 }
