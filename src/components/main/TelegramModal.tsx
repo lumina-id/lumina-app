@@ -1,12 +1,13 @@
 "use client";
-import Modal from "@/components/ui/Modal";
 import { useState } from "react";
+import Modal from "@/components/ui/Modal";
 
 interface Contact {
   id: string;
   name: string;
   label: string;
   avatar: string;
+  isDefault?: boolean;
 }
 
 interface TelegramModalProps {
@@ -35,17 +36,19 @@ export default function TelegramModal({
   onSend,
   texts,
 }: TelegramModalProps) {
-  const [selectedContact, setSelectedContact] = useState<string | null>(null);
+  const [selectedContact, setSelectedContact] = useState<string | null>("anita");
   const [sentContact, setSentContact] = useState<string | null>(null);
   const [showToast, setShowToast] = useState(false);
 
   const contacts: Contact[] = [
-    { id: "anita", name: texts.contacts.anita.name, label: texts.contacts.anita.label, avatar: "A" },
+    { id: "anita", name: texts.contacts.anita.name, label: texts.contacts.anita.label, avatar: "A", isDefault: true },
     { id: "mom", name: texts.contacts.mom.name, label: texts.contacts.mom.label, avatar: "M" },
     { id: "nurseSarah", name: texts.contacts.nurseSarah.name, label: texts.contacts.nurseSarah.label, avatar: "N" },
   ];
 
   const handleContactClick = (contact: Contact) => {
+    if (sentContact) return;
+    
     setSelectedContact(contact.id);
     setSentContact(contact.id);
     
@@ -55,7 +58,7 @@ export default function TelegramModal({
       
       setTimeout(() => {
         setShowToast(false);
-        setSelectedContact(null);
+        setSelectedContact("anita");
         setSentContact(null);
         onClose();
       }, 2000);
@@ -63,7 +66,7 @@ export default function TelegramModal({
   };
 
   const handleClose = () => {
-    setSelectedContact(null);
+    setSelectedContact("anita");
     setSentContact(null);
     setShowToast(false);
     onClose();
@@ -72,60 +75,70 @@ export default function TelegramModal({
   return (
     <>
       <Modal isOpen={isOpen} onClose={handleClose}>
-        <div className="bg-white rounded-[20px] p-6 shadow-xl">
-          <div className="text-center mb-4">
-            <h2 className="text-[20px] font-medium text-[#202020] tracking-[-0.8px]">
+        <div className="bg-white rounded-[24px] p-6 shadow-xl">
+          <div className="text-center mb-6">
+            <h2 className="text-[24px] font-semibold text-[#111827] tracking-[-0.5px] mb-2">
               {texts.title}
             </h2>
-            <p className="text-[14px] text-[#64748b] tracking-[-0.56px] mt-1">
+            <p className="text-[15px] text-[#9ca3af] tracking-[-0.3px]">
               {texts.subtitle}
             </p>
           </div>
 
-          <div className="bg-[#f8fafc] rounded-[12px] p-3 mb-4">
-            <p className="text-[14px] text-[#202020] tracking-[-0.56px]">
+          <div className="bg-[#f9fafb] rounded-[16px] p-4 mb-4 border border-[#e5e7eb]">
+            <p className="text-[15px] text-[#111827] tracking-[-0.3px]">
               {message || "..."}
             </p>
           </div>
 
-          <div className="space-y-2 mb-4">
+          <div className="space-y-3 mb-4">
             {contacts.map((contact) => (
               <button
                 key={contact.id}
                 onClick={() => handleContactClick(contact)}
-                disabled={sentContact !== null}
-                className={`w-full flex items-center gap-3 p-3 rounded-[12px] transition-all border-2 ${
+                disabled={sentContact !== null && sentContact !== contact.id}
+                className={`w-full flex items-center gap-4 p-4 rounded-[16px] transition-all border-2 ${
                   selectedContact === contact.id
-                    ? "border-[#3b82f6] bg-white"
-                    : "border-transparent hover:bg-[#f8fafc]"
+                    ? "border-[#0B1FB7] bg-white"
+                    : "border-[#e5e7eb] bg-white hover:bg-[#f9fafb]"
                 }`}
               >
-                <div className="w-[40px] h-[40px] rounded-full bg-[#3b82f6] flex items-center justify-center">
-                  <span className="text-white text-[16px] font-medium">
+                <div 
+                  className="w-[48px] h-[48px] rounded-full flex items-center justify-center"
+                  style={{
+                    background: "linear-gradient(180deg, #354BF3 0%, #0B1FB7 100%)"
+                  }}
+                >
+                  <span className="text-white text-[18px] font-semibold">
                     {contact.avatar}
                   </span>
                 </div>
                 <div className="flex-1 text-left">
                   <div className="flex items-center gap-2">
-                    <span className="text-[16px] font-medium text-[#202020] tracking-[-0.64px]">
+                    <span className="text-[16px] font-medium text-[#111827] tracking-[-0.3px]">
                       {contact.name}
                     </span>
+                    {contact.isDefault && selectedContact === contact.id && (
+                      <span className="text-[12px] text-[#6b7280] bg-[#e5e7eb] px-2 py-0.5 rounded-md">
+                        Default
+                      </span>
+                    )}
                     {sentContact === contact.id && (
-                      <span className="text-[12px] text-white bg-[#22c55e] px-2 py-0.5 rounded-full">
+                      <span className="text-[12px] text-white bg-[#22c55e] px-2 py-0.5 rounded-md">
                         {texts.sent}
                       </span>
                     )}
                   </div>
-                  <span className="text-[12px] text-[#64748b] tracking-[-0.48px]">
+                  <span className="text-[14px] text-[#0B1FB7] tracking-[-0.3px]">
                     {contact.label}
                   </span>
                 </div>
                 <svg
-                  width="20"
-                  height="20"
+                  width="24"
+                  height="24"
                   viewBox="0 0 24 24"
                   fill="none"
-                  className="text-[#94a3b8]"
+                  className="text-[#9ca3af]"
                 >
                   <path
                     d="M9 18l6-6-6-6"
@@ -141,7 +154,7 @@ export default function TelegramModal({
 
           <button
             onClick={handleClose}
-            className="w-full py-3 text-[16px] text-[#64748b] hover:text-[#202020] transition-colors"
+            className="w-full py-4 bg-[#f3f4f6] rounded-[16px] text-[16px] font-medium text-[#6b7280] hover:bg-[#e5e7eb] transition-colors"
           >
             {texts.cancel}
           </button>
