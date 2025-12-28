@@ -16,13 +16,17 @@ export default function OnboardingPage() {
   const router = useRouter();
   const { locale, setLocale, t } = useLanguage();
   const videoRef = useRef<HTMLVideoElement>(null);
+  const displayVideoRef = useRef<HTMLVideoElement>(null);
   const buttonRef = useRef<HTMLButtonElement>(null);
+  const startButtonRef = useRef<HTMLButtonElement>(null);
   
   const [hasPermission, setHasPermission] = useState(false);
   const [currentStep, setCurrentStep] = useState<OnboardingStep>(1);
   const [isHovering, setIsHovering] = useState(false);
   const [hoverStartTime, setHoverStartTime] = useState<number | null>(null);
   const [blinkDetected, setBlinkDetected] = useState(false);
+  const [isStep3Hovering, setIsStep3Hovering] = useState(false);
+  const [step3HoverStartTime, setStep3HoverStartTime] = useState<number | null>(null);
   
   const { isFaceDetected, gazeX, gazeY, faceCenter } = useGaze();
   
@@ -54,6 +58,13 @@ export default function OnboardingPage() {
     };
   }, []);
 
+  // Sync stream to display video when permission is granted
+  useEffect(() => {
+    if (hasPermission && videoRef.current?.srcObject && displayVideoRef.current) {
+      displayVideoRef.current.srcObject = videoRef.current.srcObject;
+    }
+  }, [hasPermission]);
+
   // Step 1: Auto-proceed when face is detected
   useEffect(() => {
     if (currentStep === 1 && isFaceDetected) {
@@ -64,7 +75,7 @@ export default function OnboardingPage() {
     }
   }, [currentStep, isFaceDetected]);
 
-  // Step 2: Check if gaze is over button and track hover duration
+  // Step 2: Check if gaze is over button
   useEffect(() => {
     if (currentStep !== 2 || blinkDetected) return;
 
@@ -72,7 +83,7 @@ export default function OnboardingPage() {
       if (!buttonRef.current) return;
       
       const rect = buttonRef.current.getBoundingClientRect();
-      const padding = 20;
+      const padding = 30;
       const isOver = 
         gazeX >= rect.left - padding && 
         gazeX <= rect.right + padding && 
@@ -99,6 +110,38 @@ export default function OnboardingPage() {
     return () => clearInterval(interval);
   }, [currentStep, gazeX, gazeY, hoverStartTime, blinkDetected]);
 
+  // Step 3: Check if gaze is over start button
+  useEffect(() => {
+    if (currentStep !== 3) return;
+
+    const checkHover = () => {
+      if (!startButtonRef.current) return;
+      
+      const rect = startButtonRef.current.getBoundingClientRect();
+      const padding = 30;
+      const isOver = 
+        gazeX >= rect.left - padding && 
+        gazeX <= rect.right + padding && 
+        gazeY >= rect.top - padding && 
+        gazeY <= rect.bottom + padding;
+      
+      if (isOver) {
+        setIsStep3Hovering(true);
+        if (step3HoverStartTime === null) {
+          setStep3HoverStartTime(Date.now());
+        } else if (Date.now() - step3HoverStartTime >= 1000) {
+          router.push(ROUTES.MAIN);
+        }
+      } else {
+        setIsStep3Hovering(false);
+        setStep3HoverStartTime(null);
+      }
+    };
+
+    const interval = setInterval(checkHover, 50);
+    return () => clearInterval(interval);
+  }, [currentStep, gazeX, gazeY, step3HoverStartTime, router]);
+
   const handleComplete = () => {
     router.push(ROUTES.MAIN);
   };
@@ -107,7 +150,16 @@ export default function OnboardingPage() {
     <div className="bg-white relative w-full min-h-screen flex flex-col items-center pb-20">
       <GazeCursor />
       
-      <header className="w-full border-b border-[#ddd] px-4 md:px-[100px] py-[19px] flex justify-center">
+      {/* Hidden video element for face tracking - always mounted */}
+      <video
+        ref={videoRef}
+        autoPlay
+        playsInline
+        muted
+        className="fixed top-0 left-0 w-[1px] h-[1px] opacity-0 pointer-events-none"
+      />
+      
+      <header className="w-full border-b border-[#ddd] px-4 md:px-[100px] py-[19px] flex justify-center relative z-10">
         <div className="w-full max-w-[1240px] flex items-center justify-between">
           <div className="flex gap-[8px] items-center">
             <div className="relative w-[48px] h-[48px]">
@@ -132,7 +184,7 @@ export default function OnboardingPage() {
         </div>
       </header>
 
-      <main className="flex flex-col items-center mt-[20px] w-full max-w-[653px] px-4">
+      <main className="flex flex-col items-center mt-[20px] w-full max-w-[653px] px-4 relative z-10">
         <div className="mb-[20px]">
           <ProgressBar currentStep={currentStep} totalSteps={3} />
         </div>
@@ -151,19 +203,20 @@ export default function OnboardingPage() {
 
             <div className="w-full flex flex-col gap-[16px] items-center">
               <div className="relative w-full max-w-[650px] aspect-[650/400] rounded-[24px] overflow-hidden border border-[#cbd5e1] shadow-lg bg-black">
+                {/* Display video that shows the camera feed */}
                 <video
-                  ref={videoRef}
+                  ref={displayVideoRef}
                   autoPlay
                   playsInline
                   muted
                   className="w-full h-full object-cover transform scale-x-[-1]"
                 />
 
-                <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-black/50" />
+                <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-black/50 z-[5]" />
 
                 {isFaceDetected && (
                   <div 
-                    className="absolute w-[200px] h-[200px] border-[3px] border-[#22c55e] rounded-[24px] shadow-[0_0_20px_rgba(34,197,94,0.3)] transition-all duration-100 ease-out"
+                    className="absolute w-[200px] h-[200px] border-[3px] border-[#22c55e] rounded-[24px] shadow-[0_0_20px_rgba(34,197,94,0.3)] transition-all duration-100 ease-out z-20"
                     style={{
                       left: `${faceCenter.x * 100}%`,
                       top: `${faceCenter.y * 100}%`,
@@ -178,7 +231,7 @@ export default function OnboardingPage() {
                   </div>
                 )}
 
-                <p className="absolute bottom-[20px] left-1/2 -translate-x-1/2 text-white text-[14px] font-medium tracking-[-0.64px]">
+                <p className="absolute bottom-[20px] left-1/2 -translate-x-1/2 text-white text-[14px] font-medium tracking-[-0.64px] z-10">
                   {t.onboarding.step1.cameraPreview}
                 </p>
               </div>
@@ -199,17 +252,6 @@ export default function OnboardingPage() {
           </>
         )}
 
-        {/* Hidden video for step 2 & 3 - keeps face tracking active */}
-        {currentStep !== 1 && (
-          <video
-            ref={videoRef}
-            autoPlay
-            playsInline
-            muted
-            className="fixed top-0 left-0 w-[1px] h-[1px] opacity-0 pointer-events-none"
-          />
-        )}
-
         {/* Step 2: Button Selection Training */}
         {currentStep === 2 && (
           <div className="flex flex-col items-center gap-[24px] w-full max-w-[500px]">
@@ -225,7 +267,8 @@ export default function OnboardingPage() {
             <div className="relative">
               <button
                 ref={buttonRef}
-                className={`relative px-[32px] py-[16px] rounded-[12px] text-white text-[16px] font-medium tracking-[-0.64px] transition-all duration-300 ${
+                onClick={() => setCurrentStep(3)}
+                className={`relative px-[32px] py-[16px] rounded-[12px] text-white text-[16px] font-medium tracking-[-0.64px] transition-all duration-300 hover:opacity-90 ${
                   isHovering
                     ? "shadow-[0_0_30px_rgba(11,31,183,0.6)] scale-105"
                     : ""
@@ -262,8 +305,13 @@ export default function OnboardingPage() {
             </div>
 
             <button
+              ref={startButtonRef}
               onClick={handleComplete}
-              className="px-[32px] py-[14px] rounded-[12px] text-white text-[16px] font-medium tracking-[-0.64px] hover:opacity-90 transition-all duration-300"
+              className={`px-[32px] py-[14px] rounded-[12px] text-white text-[16px] font-medium tracking-[-0.64px] transition-all duration-300 ${
+                isStep3Hovering
+                  ? "shadow-[0_0_30px_rgba(11,31,183,0.6)] scale-105"
+                  : ""
+              }`}
               style={{
                 background: "linear-gradient(180deg, #0B1FB7 0%, #081787 100%)"
               }}
