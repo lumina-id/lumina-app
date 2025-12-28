@@ -1,9 +1,9 @@
-import GetReady from "@/components/GetReady";
+import OnboardingPage from "./onboarding/page";
 
 export default function Home() {
   return (
     <main>
-      <GetReady />
+      <OnboardingPage />
     </main>
   );
 }
