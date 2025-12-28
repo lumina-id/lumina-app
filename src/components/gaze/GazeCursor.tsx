@@ -14,7 +14,7 @@ export default function GazeCursor() {
         height: "20px",
         backgroundColor: "#00ED57",
         borderRadius: "50%",
-        pointerEvents: "none", // Important: lets clicks pass through
+        pointerEvents: "none",
         transform: "translate(-50%, -50%)",
         zIndex: 9999,
         border: "2px solid white",
