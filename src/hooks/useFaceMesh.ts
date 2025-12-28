@@ -14,6 +14,9 @@ export const useFaceMesh = (videoRef: React.RefObject<HTMLVideoElement>) => {
   const filterY = useRef(new OneEuroFilter(1.0, 0.0, 1.0));
   const filterCenterX = useRef(new OneEuroFilter(1.0, 0.0, 1.0));
   const filterCenterY = useRef(new OneEuroFilter(1.0, 0.0, 1.0));
+  
+  // Blink State
+  const blinkRef = useRef(false);
 
   useEffect(() => {
     const init = async () => {
@@ -56,23 +59,90 @@ export const useFaceMesh = (videoRef: React.RefObject<HTMLVideoElement>) => {
       
       setFaceCenter({ x: smoothCenterX, y: smoothCenterY });
 
-      // Simple Gaze Estimation Logic (Placeholder for Phase 2)
-      // In a real app, you would use the iris landmarks (468-477)
-      // and map them to screen coordinates using calibration matrix.
+      // Head Tracking Logic (Vocable style)
+      // Uses the nose tip (Landmark 1) to control the cursor.
+      const noseTip = landmarks[1];
       
-      // Example: Using nose tip (1) as a cursor for testing head movement control
-      // This is just to prove the pipeline works.
-      const noseTip = landmarks[1]; 
+      // --- SENSITIVITY CONTROL ---
+      // Increase this value to make the cursor move faster with less head movement.
+      // 1.0 = 1:1 mapping (requires large movement)
+      // 2.0 = 2x sensitivity (requires half the movement)
+      // 2.5 = Recommended for accessibility
+      const sensitivity = 2.5; 
+
+      // 1. Get mirrored coordinates (0 to 1)
+      const mirroredX = 1 - noseTip.x;
+      const mirroredY = noseTip.y;
+
+      // 2. Apply sensitivity scaling relative to center (0.5)
+      // Formula: Center + (Offset * Sensitivity)
+      let activeX = 0.5 + (mirroredX - 0.5) * sensitivity;
+      let activeY = 0.5 + (mirroredY - 0.5) * sensitivity;
+
+      // 3. Clamp values to stay within screen [0, 1]
+      // This prevents the cursor from going off-screen
+      activeX = Math.max(0, Math.min(1, activeX));
+      activeY = Math.max(0, Math.min(1, activeY));
       
-      // Invert X because webcam is mirrored
-      const rawX = (1 - noseTip.x) * window.innerWidth;
-      const rawY = noseTip.y * window.innerHeight;
+      // 4. Map to screen dimensions
+      const rawX = activeX * window.innerWidth;
+      const rawY = activeY * window.innerHeight;
 
       // Apply smoothing
       const smoothX = filterX.current.filter(startTimeMs, rawX);
       const smoothY = filterY.current.filter(startTimeMs, rawY);
 
       setGaze(smoothX, smoothY);
+
+      // --- BLINK DETECTION ---
+      const leftEyeUpper = landmarks[159];
+      const leftEyeLower = landmarks[145];
+      const leftEyeInner = landmarks[133];
+      const leftEyeOuter = landmarks[33];
+
+      const rightEyeUpper = landmarks[386];
+      const rightEyeLower = landmarks[374];
+      const rightEyeInner = landmarks[362];
+      const rightEyeOuter = landmarks[263];
+
+      // Helper to calculate distance
+      const getDistance = (p1: any, p2: any) => {
+        return Math.sqrt(Math.pow(p1.x - p2.x, 2) + Math.pow(p1.y - p2.y, 2));
+      };
+
+      // Calculate Eye Aspect Ratio (Vertical / Horizontal)
+      const leftVertical = getDistance(leftEyeUpper, leftEyeLower);
+      const leftHorizontal = getDistance(leftEyeInner, leftEyeOuter);
+      const leftRatio = leftVertical / leftHorizontal;
+
+      const rightVertical = getDistance(rightEyeUpper, rightEyeLower);
+      const rightHorizontal = getDistance(rightEyeInner, rightEyeOuter);
+      const rightRatio = rightVertical / rightHorizontal;
+
+      // Average ratio
+      const avgRatio = (leftRatio + rightRatio) / 2;
+      
+      // Threshold for blink (usually around 0.1 to 0.15)
+      // Adjust this if it triggers too easily or is too hard
+      const BLINK_THRESHOLD = 0.12;
+
+      if (avgRatio < BLINK_THRESHOLD) {
+        if (!blinkRef.current) {
+           // Start of blink
+           blinkRef.current = true;
+           
+           // Trigger Click
+           // We use the smoothed coordinates
+           const element = document.elementFromPoint(smoothX, smoothY);
+           if (element && element instanceof HTMLElement) {
+             element.click();
+             console.log("Blink Click Triggered at:", smoothX, smoothY);
+           }
+        }
+      } else {
+        // Eye is open
+        blinkRef.current = false;
+      }
     } else {
       setIsFaceDetected(false);
     }

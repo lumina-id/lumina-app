@@ -7,10 +7,40 @@ import VirtualKeyboard from "@/components/main/VirtualKeyboard";
 import Header from "@/components/ui/Header";
 import { useLanguage } from "@/context/LanguageContext";
 import { useMessageComposer } from "@/hooks/main/useMessageComposer";
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
+import { useFaceMesh } from "@/hooks/useFaceMesh";
+import GazeCursor from "@/components/gaze/GazeCursor";
 
 export default function MainPage() {
   const { t } = useLanguage();
+  const videoRef = useRef<HTMLVideoElement>(null);
+  
+  // Initialize Face Mesh
+  useFaceMesh(videoRef);
+
+  // Start Webcam
+  useEffect(() => {
+    const startWebcam = async () => {
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+        if (videoRef.current) {
+          videoRef.current.srcObject = stream;
+        }
+      } catch (err) {
+        console.error("Error accessing webcam:", err);
+      }
+    };
+
+    startWebcam();
+
+    return () => {
+      if (videoRef.current && videoRef.current.srcObject) {
+        const stream = videoRef.current.srcObject as MediaStream;
+        stream.getTracks().forEach((track) => track.stop());
+      }
+    };
+  }, []);
+
   const {
     message,
     appendChar,
@@ -48,6 +78,16 @@ export default function MainPage() {
 
   return (
     <div className="bg-white min-h-screen flex flex-col">
+      <GazeCursor />
+      {/* Hidden Video for Tracking */}
+      <video
+        ref={videoRef}
+        autoPlay
+        playsInline
+        muted
+        className="fixed top-0 left-0 w-1 h-1 opacity-0 pointer-events-none"
+      />
+      
       <Header />
 
       <main className="flex-1 flex flex-col items-center px-4 py-8 pb-20">

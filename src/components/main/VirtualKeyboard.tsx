@@ -1,3 +1,5 @@
+import { useState } from "react";
+
 interface VirtualKeyboardProps {
   onKeyPress: (key: string) => void;
   onSpace: () => void;
@@ -32,7 +34,13 @@ export default function VirtualKeyboard({
   onClear,
   texts,
 }: VirtualKeyboardProps) {
+  const [activeKey, setActiveKey] = useState<string | null>(null);
+
   const handleKeyClick = (key: string) => {
+    // Visual Feedback
+    setActiveKey(key);
+    setTimeout(() => setActiveKey(null), 200);
+
     if (key === "BACKSPACE") {
       onBackspace();
     } else if (key === "SPACE") {
@@ -45,13 +53,19 @@ export default function VirtualKeyboard({
   const renderKey = (key: string, isMobile: boolean = false) => {
     const isBackspace = key === "BACKSPACE";
     const isSpace = key === "SPACE";
+    const isActive = activeKey === key;
+
+    // Active Style: Green Outline #33FF7E
+    const activeStyle = isActive 
+      ? "border-[3px] border-[#33FF7E] shadow-[0_0_15px_rgba(51,255,126,0.5)] bg-white transform scale-105 z-10" 
+      : "bg-[#f1f5f9] hover:bg-[#e2e8f0] border border-transparent";
 
     if (isBackspace) {
       return (
         <button
           key={key}
           onClick={() => handleKeyClick(key)}
-          className={`flex items-center justify-center rounded-[12px] bg-[#f1f5f9] hover:bg-[#e2e8f0] transition-all shadow-sm ${
+          className={`flex items-center justify-center rounded-[12px] transition-all shadow-sm ${activeStyle} ${
             isMobile ? "w-[48px] h-[48px]" : "w-[60px] h-[56px]"
           }`}
         >
@@ -86,7 +100,7 @@ export default function VirtualKeyboard({
         <button
           key={key}
           onClick={() => handleKeyClick(key)}
-          className="w-[100px] h-[48px] flex items-center justify-center rounded-[12px] bg-[#f1f5f9] hover:bg-[#e2e8f0] transition-all shadow-sm text-[16px] font-medium text-[#202020]"
+          className={`w-[100px] h-[48px] flex items-center justify-center rounded-[12px] transition-all shadow-sm text-[16px] font-medium text-[#202020] ${activeStyle}`}
         >
           {texts.space}
         </button>
@@ -97,7 +111,7 @@ export default function VirtualKeyboard({
       <button
         key={key}
         onClick={() => handleKeyClick(key)}
-        className={`flex items-center justify-center rounded-[12px] bg-[#f1f5f9] hover:bg-[#e2e8f0] transition-all shadow-sm text-[18px] font-medium text-[#202020] ${
+        className={`flex items-center justify-center rounded-[12px] transition-all shadow-sm text-[18px] font-medium text-[#202020] ${activeStyle} ${
           isMobile ? "w-[48px] h-[48px]" : "w-[60px] h-[56px]"
         }`}
       >
@@ -117,8 +131,12 @@ export default function VirtualKeyboard({
         ))}
 
         <button
-          onClick={onSpace}
-          className="w-[280px] h-[52px] flex items-center justify-center rounded-full bg-[#f1f5f9] hover:bg-[#e2e8f0] transition-all shadow-sm text-[18px] font-medium text-[#202020] mt-2"
+          onClick={() => handleKeyClick("SPACE")}
+          className={`w-[280px] h-[52px] flex items-center justify-center rounded-full transition-all shadow-sm text-[18px] font-medium text-[#202020] mt-2 ${
+             activeKey === "SPACE" 
+             ? "border-[3px] border-[#33FF7E] shadow-[0_0_15px_rgba(51,255,126,0.5)] bg-white transform scale-105 z-10" 
+             : "bg-[#f1f5f9] hover:bg-[#e2e8f0] border border-transparent"
+          }`}
         >
           {texts.space}
         </button>
