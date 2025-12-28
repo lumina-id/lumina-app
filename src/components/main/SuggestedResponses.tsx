@@ -10,18 +10,21 @@ export default function SuggestedResponses({
   onSelect,
 }: SuggestedResponsesProps) {
   return (
-    <div className="w-full grid grid-cols-2 gap-3">
+    <div className="w-full grid grid-cols-1 md:grid-cols-2 gap-3">
       {responses.map((response, index) => (
         <button
           key={index}
           onClick={() => onSelect(response, index)}
-          className={`p-4 rounded-[12px] text-left text-[14px] tracking-[-0.56px] transition-all border-2 ${
+          className={`relative p-4 rounded-[12px] text-left text-[15px] tracking-[-0.3px] transition-all bg-[#f9fafb] hover:bg-[#f3f4f6] ${
             selectedIndex === index
-              ? "border-[#3b82f6] bg-white text-[#202020]"
-              : "border-[#e2e8f0] bg-[#f8fafc] text-[#64748b] hover:border-[#cbd5e1]"
+              ? "text-[#111827]"
+              : "text-[#374151]"
           }`}
         >
-          {response}
+          {selectedIndex === index && (
+            <div className="absolute left-0 top-0 bottom-0 w-[4px] bg-[#0B1FB7] rounded-l-[12px]" />
+          )}
+          <span className={selectedIndex === index ? "ml-1" : ""}>{response}</span>
         </button>
       ))}
     </div>

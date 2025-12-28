@@ -68,8 +68,7 @@ export default function MainPage() {
           <MessageInput
             message={message}
             placeholder={t.main.messageInput.placeholder}
-            isActive={message.length > 0}
-            onSendClick={handleSend}
+            onSpeakClick={handleSend}
             onTelegramClick={handleTelegramClick}
           />
 
