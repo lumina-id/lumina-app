@@ -9,11 +9,20 @@ interface VirtualKeyboardProps {
   };
 }
 
-const KEYBOARD_ROWS = [
+const DESKTOP_ROWS = [
   ["1", "2", "3", "4", "5", "6", "7", "8", "9", "0"],
   ["Q", "W", "E", "R", "T", "Y", "U", "I", "O", "P"],
   ["A", "S", "D", "F", "G", "H", "J", "K", "L", "Z"],
-  ["X", "C", "V", "B", "N", "M", ",", ".", "?", "⌫"],
+  ["X", "C", "V", "B", "N", "M", ",", ".", "?", "BACKSPACE"],
+];
+
+const MOBILE_ROWS = [
+  ["Q", "W", "E", "R", "T", "Y", "U"],
+  ["I", "O", "P", "A", "S", "D", "F"],
+  ["G", "H", "J", "K", "L", "Z", "X"],
+  ["C", "V", "B", "N", "M", "1", "2"],
+  ["3", "4", "5", "6", "7", "8", "9"],
+  ["0", ".", "SPACE", ",", "?", "BACKSPACE"],
 ];
 
 export default function VirtualKeyboard({
@@ -24,47 +33,113 @@ export default function VirtualKeyboard({
   texts,
 }: VirtualKeyboardProps) {
   const handleKeyClick = (key: string) => {
-    if (key === "⌫") {
+    if (key === "BACKSPACE") {
       onBackspace();
+    } else if (key === "SPACE") {
+      onSpace();
     } else {
       onKeyPress(key);
     }
   };
 
-  return (
-    <div className="w-full flex flex-col items-center gap-2">
-      {KEYBOARD_ROWS.map((row, rowIndex) => (
-        <div key={rowIndex} className="flex gap-2 justify-center">
-          {row.map((key) => (
-            <button
-              key={key}
-              onClick={() => handleKeyClick(key)}
-              className={`w-[36px] h-[44px] md:w-[40px] md:h-[48px] flex items-center justify-center rounded-[8px] text-[14px] md:text-[16px] font-medium transition-all border border-[#e2e8f0] ${
-                key === "⌫"
-                  ? "bg-[#f1f5f9] text-[#64748b] hover:bg-[#e2e8f0]"
-                  : "bg-white text-[#202020] hover:bg-[#f8fafc]"
-              }`}
-            >
-              {key}
-            </button>
-          ))}
-        </div>
-      ))}
+  const renderKey = (key: string, isMobile: boolean = false) => {
+    const isBackspace = key === "BACKSPACE";
+    const isSpace = key === "SPACE";
 
+    if (isBackspace) {
+      return (
+        <button
+          key={key}
+          onClick={() => handleKeyClick(key)}
+          className={`flex items-center justify-center rounded-[12px] bg-[#f1f5f9] hover:bg-[#e2e8f0] transition-all shadow-sm ${
+            isMobile ? "w-[48px] h-[48px]" : "w-[60px] h-[56px]"
+          }`}
+        >
+          <svg
+            width={isMobile ? "20" : "24"}
+            height={isMobile ? "20" : "24"}
+            viewBox="0 0 24 24"
+            fill="none"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path
+              d="M21 4H8l-7 8 7 8h13a2 2 0 002-2V6a2 2 0 00-2-2z"
+              stroke="#374151"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
+            <path
+              d="M18 9l-6 6M12 9l6 6"
+              stroke="#374151"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
+          </svg>
+        </button>
+      );
+    }
+
+    if (isSpace && isMobile) {
+      return (
+        <button
+          key={key}
+          onClick={() => handleKeyClick(key)}
+          className="w-[100px] h-[48px] flex items-center justify-center rounded-[12px] bg-[#f1f5f9] hover:bg-[#e2e8f0] transition-all shadow-sm text-[16px] font-medium text-[#202020]"
+        >
+          {texts.space}
+        </button>
+      );
+    }
+
+    return (
       <button
-        onClick={onSpace}
-        className="w-[200px] h-[44px] md:h-[48px] flex items-center justify-center rounded-[8px] text-[14px] md:text-[16px] font-medium bg-[#202020] text-white hover:bg-[#374151] transition-all mt-1"
+        key={key}
+        onClick={() => handleKeyClick(key)}
+        className={`flex items-center justify-center rounded-[12px] bg-[#f1f5f9] hover:bg-[#e2e8f0] transition-all shadow-sm text-[18px] font-medium text-[#202020] ${
+          isMobile ? "w-[48px] h-[48px]" : "w-[60px] h-[56px]"
+        }`}
       >
-        {texts.space}
+        {key}
       </button>
+    );
+  };
+
+  return (
+    <div className="w-full flex flex-col items-center gap-3">
+      {/* Desktop Layout */}
+      <div className="hidden md:flex flex-col items-center gap-2">
+        {DESKTOP_ROWS.map((row, rowIndex) => (
+          <div key={rowIndex} className="flex gap-2 justify-center">
+            {row.map((key) => renderKey(key, false))}
+          </div>
+        ))}
+
+        <button
+          onClick={onSpace}
+          className="w-[280px] h-[52px] flex items-center justify-center rounded-full bg-[#f1f5f9] hover:bg-[#e2e8f0] transition-all shadow-sm text-[18px] font-medium text-[#202020] mt-2"
+        >
+          {texts.space}
+        </button>
+      </div>
+
+      {/* Mobile Layout */}
+      <div className="flex md:hidden flex-col items-center gap-2">
+        {MOBILE_ROWS.map((row, rowIndex) => (
+          <div key={rowIndex} className="flex gap-2 justify-center">
+            {row.map((key) => renderKey(key, true))}
+          </div>
+        ))}
+      </div>
 
       <button
         onClick={onClear}
-        className="flex items-center gap-1 text-[14px] text-[#ef4444] hover:text-[#dc2626] transition-colors mt-2"
+        className="flex items-center gap-2 text-[14px] text-[#ef4444] hover:text-[#dc2626] transition-colors mt-3"
       >
         <svg
-          width="16"
-          height="16"
+          width="18"
+          height="18"
           viewBox="0 0 24 24"
           fill="none"
           xmlns="http://www.w3.org/2000/svg"
