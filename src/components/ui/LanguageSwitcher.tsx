@@ -13,7 +13,7 @@ export default function LanguageSwitcher({ locale, onLocaleChange }: LanguageSwi
     <div className="bg-[#f8fafc] border border-[#e2e8f0] flex gap-[8px] items-center px-[8px] py-[6px] rounded-[12px]">
       <div className="relative w-[20px] h-[20px]">
         <Image
-          src="/assets/language-icon.png"
+          src="/assets/language-icon.svg"
           alt="Language"
           fill
           className="object-contain"

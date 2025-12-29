@@ -164,7 +164,7 @@ export default function OnboardingPage() {
           <div className="flex gap-[8px] items-center">
             <div className="relative w-[48px] h-[48px]">
               <Image
-                src="/assets/lumina-icon.png"
+                src="/assets/lumina-icon.svg"
                 alt="Lumina Icon"
                 fill
                 className="object-contain"

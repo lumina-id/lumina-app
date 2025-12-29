@@ -47,7 +47,7 @@ export default function GetReady() {
           <div className="flex gap-[8px] items-center">
             <div className="relative w-[48px] h-[48px]">
               <Image
-                src="/assets/lumina-icon.png"
+                src="/assets/lumina-icon.svg"
                 alt="Lumina Icon"
                 fill
                 className="object-contain"
@@ -64,7 +64,7 @@ export default function GetReady() {
             <div className="bg-[#f8fafc] border border-[#e2e8f0] flex gap-[8px] items-center px-[8px] py-[6px] rounded-[12px]">
               <div className="relative w-[20px] h-[20px]">
                 <Image
-                  src="/assets/language-icon.png"
+                  src="/assets/language-icon.svg"
                   alt="Language"
                   fill
                   className="object-contain"
