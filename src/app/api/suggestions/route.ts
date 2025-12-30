@@ -14,71 +14,64 @@ export async function POST(req: NextRequest) {
             });
         }
 
-        const apiKey = process.env.OPENROUTER_API_KEY;
-        const model = process.env.OPENROUTER_MODEL || "google/gemini-flash-1.5";
+        const apiKey = process.env.AZURE_OPENAI_API_KEY;
+        const endpoint = process.env.AZURE_OPENAI_ENDPOINT;
+        const deploymentName = process.env.AZURE_OPENAI_DEPLOYMENT_NAME || "gpt-5-nano";
+        const apiVersion = "2025-01-01-preview";
 
-        if (!apiKey) {
-            console.error("Missing OpenRouter API Key");
-            return NextResponse.json({ error: "OpenRouter API Key Missing" }, { status: 500 });
+        if (!apiKey || !endpoint) {
+            console.error("Missing Azure OpenAI Config");
+            return NextResponse.json({ error: "Azure OpenAI Config Missing" }, { status: 500 });
         }
 
         // Different prompts based on language
         const prompt = lang === "en"
             ? `You are an AAC sentence suggestion system.
+Generate 4 short English sentences using the word "${context}".
+- First-person perspective ("I")
+- Short, clear, easy to understand
+- Express a need, request, or condition
 
-            Supported languages: English ONLY.
+Output ONLY a JSON array: ["sentence 1", "sentence 2", "sentence 3", "sentence 4"]
+NO explanation. NO reasoning. JUST the JSON.`
+            : `Kamu adalah sistem saran kalimat AAC.
+Buat 4 kalimat pendek Bahasa Indonesia menggunakan kata "${context}".
+- Sudut pandang orang pertama ("Saya")
+- Singkat, jelas, mudah dipahami
+- Mengungkapkan kebutuhan, permintaan, atau kondisi
 
-            From the keyword "${context}", generate 4 short sentences:
-            - Use ONLY the language detected from the keyword (English or Indonesian)
-            - First-person perspective ("I")
-            - Short, clear, and easy to understand
-            - Express a need, request, or condition
-            - Suitable to be spoken aloud to a caregiver
+Output HANYA JSON array: ["kalimat 1", "kalimat 2", "kalimat 3", "kalimat 4"]
+TANPA penjelasan. TANPA reasoning. HANYA JSON.`;
 
-            Output ONLY a JSON array in this exact format:
-            ["sentence 1", "sentence 2", "sentence 3", "sentence 4"]
+        const url = `${endpoint}openai/deployments/${deploymentName}/chat/completions?api-version=${apiVersion}`;
+        console.log("Calling Azure OpenAI:", url);
 
-            Do NOT include anything outside the JSON.`
-            : `Kamu adalah sistem pemberi saran kalimat AAC (Augmentative and Alternative Communication).
-
-            Bahasa yang didukung: Bahasa Indonesia SAJA.
-
-            Dari kata kunci "${context}", buat 4 kalimat pendek:
-            - Gunakan HANYA Bahasa Indonesia
-            - Gunakan sudut pandang orang pertama ("Saya")
-            - Kalimat harus singkat, jelas, dan mudah dipahami
-            - Mengungkapkan kebutuhan, permintaan, atau kondisi
-            - Cocok untuk diucapkan kepada caregiver
-
-            Output HANYA dalam format JSON array seperti berikut:
-            ["kalimat 1", "kalimat 2", "kalimat 3", "kalimat 4"]
-
-            Jangan menulis apapun selain JSON.`;
-
-        console.log("Calling OpenRouter with model:", model);
-        const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+        const response = await fetch(url, {
             method: "POST",
             headers: {
-                "Authorization": `Bearer ${apiKey}`,
                 "Content-Type": "application/json",
-                "HTTP-Referer": process.env.SITE_URL || "http://localhost:3000",
-                "X-Title": "Lumina TTS App"
+                "api-key": apiKey,
             },
             body: JSON.stringify({
-                model: model,
                 messages: [
                     {
                         role: "user",
                         content: prompt
                     }
                 ],
-                max_tokens: 200,
-                temperature: 0.7,
+                max_completion_tokens: 150,
+                // Disable reasoning for faster response
+                reasoning_effort: "none",
             })
         });
 
         const data = await response.json();
-        console.log("OpenRouter Response:", JSON.stringify(data, null, 2));
+        console.log("Azure Response:", JSON.stringify(data, null, 2));
+
+        if (data.error) {
+            console.error("Azure Error:", data.error);
+            return NextResponse.json({ error: data.error.message }, { status: 500 });
+        }
 
         const content = data.choices?.[0]?.message?.content?.trim();
         console.log("Response Content:", content);
@@ -103,7 +96,9 @@ export async function POST(req: NextRequest) {
 
         if (suggestions.length === 0) {
             console.log("No valid suggestions parsed, using defaults.");
-            suggestions = ["Ya", "Tidak", "Terima kasih", "Bisa ulangi?"];
+            suggestions = lang === "en"
+                ? ["Yes", "No", "Thank you", "Please repeat?"]
+                : ["Ya", "Tidak", "Terima kasih", "Bisa ulangi?"];
         }
 
         suggestions = suggestions.slice(0, 4);
