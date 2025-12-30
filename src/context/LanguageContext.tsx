@@ -1,5 +1,5 @@
 "use client";
-import { createContext, ReactNode, useCallback, useContext, useState } from "react";
+import { createContext, ReactNode, useCallback, useContext, useState, useEffect } from "react";
 import { en, type Translations } from "../locales/en";
 import { id } from "../locales/id";
 
@@ -17,12 +17,28 @@ const LanguageContext = createContext<LanguageContextType | undefined>(undefined
 
 export const LanguageProvider = ({ children }: { children: ReactNode }) => {
   const [locale, setLocaleState] = useState<Locale>("en");
+  const [isLoaded, setIsLoaded] = useState(false);
+
+  // Load saved language on mount
+  useEffect(() => {
+    const savedLocale = localStorage.getItem("lumina_locale") as Locale | null;
+    if (savedLocale && (savedLocale === "en" || savedLocale === "id")) {
+      setLocaleState(savedLocale);
+    }
+    setIsLoaded(true);
+  }, []);
 
   const setLocale = useCallback((newLocale: Locale) => {
     setLocaleState(newLocale);
+    localStorage.setItem("lumina_locale", newLocale);
   }, []);
 
   const t = translations[locale];
+
+  // Don't render until we've loaded the saved preference
+  if (!isLoaded) {
+    return null;
+  }
 
   return (
     <LanguageContext.Provider value={{ locale, setLocale, t }}>

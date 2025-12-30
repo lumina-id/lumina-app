@@ -6,16 +6,52 @@ import fs from "fs";
 import path from "path";
 import { RowDataPacket } from "mysql2";
 
+// Voice configurations for each language
+const VOICE_CONFIG = {
+    id: {
+        name: "id-ID-ArdiNeural",  // Indonesian male - clear and natural
+        lang: "id-ID",
+        style: "friendly",
+    },
+    en: {
+        name: "en-US-GuyNeural",   // English male - clear and professional
+        lang: "en-US",
+        style: "friendly",
+    }
+};
+
+// Simple language detection based on common words
+function detectLanguage(text: string): "id" | "en" {
+    const indonesianWords = ["saya", "aku", "ini", "itu", "dan", "atau", "yang", "untuk", "dengan", "dari", "ke", "pada", "ada", "tidak", "bisa", "mau", "ingin", "tolong", "terima", "kasih", "selamat", "pagi", "siang", "sore", "malam", "apa", "siapa", "dimana", "kapan", "mengapa", "bagaimana"];
+    const textLower = text.toLowerCase();
+
+    let idCount = 0;
+    for (const word of indonesianWords) {
+        if (textLower.includes(word)) {
+            idCount++;
+        }
+    }
+
+    // If 2 or more Indonesian words found, treat as Indonesian
+    return idCount >= 2 ? "id" : "en";
+}
+
 export async function POST(req: NextRequest) {
     try {
-        const { text } = await req.json();
+        const { text, lang } = await req.json();
 
         if (!text) {
             return NextResponse.json({ error: "Text is required" }, { status: 400 });
         }
 
-        // Hash the text to create a unique identifier
-        const hash = crypto.createHash("sha256").update(text).digest("hex");
+        // Auto-detect language if not provided
+        const detectedLang = lang || detectLanguage(text);
+        const voiceConfig = VOICE_CONFIG[detectedLang as keyof typeof VOICE_CONFIG] || VOICE_CONFIG.id;
+
+        console.log(`TTS Request: "${text.substring(0, 50)}..." | Lang: ${detectedLang} | Voice: ${voiceConfig.name}`);
+
+        // Hash includes language for separate caching
+        const hash = crypto.createHash("sha256").update(text + detectedLang).digest("hex");
         const audioFileName = `${hash}.mp3`;
         const audioUrl = `/audio/${audioFileName}`;
         const audioFilePath = path.join(process.cwd(), "public", "audio", audioFileName);
@@ -27,32 +63,46 @@ export async function POST(req: NextRequest) {
         );
 
         if (rows.length > 0) {
-            // Check if file actually exists
             if (fs.existsSync(audioFilePath)) {
                 console.log("Serving from cache:", audioUrl);
-                return NextResponse.json({ audioUrl });
+                return NextResponse.json({
+                    audioUrl,
+                    cached: true,
+                    lang: detectedLang
+                });
             } else {
-                // File missing, remove from specific cache record and re-synthesize
                 console.warn("Cache hit but file missing, re-synthesizing...");
                 await pool.query("DELETE FROM audio_cache WHERE text_hash = ?", [hash]);
             }
         }
 
-        // Synthesize using Azure
+        // Synthesize using Azure with SSML for better quality
         const speechConfig = sdk.SpeechConfig.fromSubscription(
             process.env.AZURE_SPEECH_KEY || "",
             process.env.AZURE_SPEECH_REGION || "southeastasia"
         );
 
-        // Set voice directly to Indonesian Girl (Gadis) or similar high quality neural voice
-        speechConfig.speechSynthesisVoiceName = "id-ID-GadisNeural";
+        speechConfig.speechSynthesisVoiceName = voiceConfig.name;
+        speechConfig.speechSynthesisOutputFormat = sdk.SpeechSynthesisOutputFormat.Audio16Khz32KBitRateMonoMp3;
 
         const audioConfig = sdk.AudioConfig.fromAudioFileOutput(audioFilePath);
         const synthesizer = new sdk.SpeechSynthesizer(speechConfig, audioConfig);
 
+        // Use SSML for better prosody control
+        const ssml = `
+        <speak version="1.0" xmlns="http://www.w3.org/2001/10/synthesis" xmlns:mstts="https://www.w3.org/2001/mstts" xml:lang="${voiceConfig.lang}">
+            <voice name="${voiceConfig.name}">
+                <mstts:express-as style="${voiceConfig.style}">
+                    <prosody rate="0.95" pitch="+0%">
+                        ${text}
+                    </prosody>
+                </mstts:express-as>
+            </voice>
+        </speak>`;
+
         return new Promise((resolve) => {
-            synthesizer.speakTextAsync(
-                text,
+            synthesizer.speakSsmlAsync(
+                ssml,
                 async (result) => {
                     if (result.reason === sdk.ResultReason.SynthesizingAudioCompleted) {
                         console.log("Synthesis finished.");
@@ -64,7 +114,11 @@ export async function POST(req: NextRequest) {
                             [hash, text, audioUrl]
                         );
 
-                        resolve(NextResponse.json({ audioUrl }));
+                        resolve(NextResponse.json({
+                            audioUrl,
+                            cached: false,
+                            lang: detectedLang
+                        }));
                     } else {
                         console.error("Speech synthesis canceled, " + result.errorDetails);
                         synthesizer.close();

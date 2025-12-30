@@ -12,7 +12,7 @@ import { useFaceMesh } from "@/hooks/useFaceMesh";
 import GazeCursor from "@/components/gaze/GazeCursor";
 
 export default function MainPage() {
-  const { t } = useLanguage();
+  const { t, locale } = useLanguage();
   const videoRef = useRef<HTMLVideoElement>(null);
 
   // Initialize Face Mesh
@@ -78,7 +78,7 @@ export default function MainPage() {
       const res = await fetch('/api/suggestions', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ context }),
+        body: JSON.stringify({ context, lang: locale }),
       });
       const data = await res.json();
       if (data.suggestions && Array.isArray(data.suggestions)) {
@@ -89,25 +89,41 @@ export default function MainPage() {
     }
   };
 
+  // Browser-side audio cache
+  const audioCache = useRef<Map<string, HTMLAudioElement>>(new Map());
+
   const handleSpeak = async () => {
     if (!message || ttsCooldown) return;
 
     try {
       setIsSpeaking(true);
       setTtsCooldown(true);
-
-      // 1 second cooldown before allowing another TTS request
       setTimeout(() => setTtsCooldown(false), 1000);
+
+      // Check browser cache first
+      const cacheKey = `${message}_${locale}`;
+      if (audioCache.current.has(cacheKey)) {
+        console.log("Playing from browser cache");
+        const cachedAudio = audioCache.current.get(cacheKey)!;
+        cachedAudio.currentTime = 0;
+        cachedAudio.play();
+        cachedAudio.onended = () => setIsSpeaking(false);
+        return;
+      }
 
       const res = await fetch('/api/tts', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ text: message }),
+        body: JSON.stringify({ text: message, lang: locale }),
       });
       const data = await res.json();
 
       if (data.audioUrl) {
         const audio = new Audio(data.audioUrl);
+
+        // Store in browser cache
+        audioCache.current.set(cacheKey, audio);
+
         audio.play();
         audio.onended = () => setIsSpeaking(false);
         audio.onerror = () => setIsSpeaking(false);

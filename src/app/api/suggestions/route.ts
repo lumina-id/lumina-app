@@ -2,12 +2,15 @@ import { NextRequest, NextResponse } from "next/server";
 
 export async function POST(req: NextRequest) {
     try {
-        const { context } = await req.json();
-        console.log("API Suggestions called with context:", context);
+        const { context, lang } = await req.json();
+        console.log("API Suggestions called with context:", context, "lang:", lang);
 
+        // Default suggestions based on language
         if (!context) {
             return NextResponse.json({
-                suggestions: ["Halo, apa kabar?", "Saya ingin bertanya.", "Bisa tolong bantu saya?", "Terima kasih."]
+                suggestions: lang === "en"
+                    ? ["Hello, how are you?", "I want to ask something.", "Please help me.", "Thank you."]
+                    : ["Halo, apa kabar?", "Saya ingin bertanya.", "Bisa tolong bantu saya?", "Terima kasih."]
             });
         }
 
@@ -18,6 +21,11 @@ export async function POST(req: NextRequest) {
             console.error("Missing OpenRouter API Key");
             return NextResponse.json({ error: "OpenRouter API Key Missing" }, { status: 500 });
         }
+
+        // Different prompts based on language
+        const prompt = lang === "en"
+            ? `Create 4 short sentences in English using the word "${context}". Output ONLY a JSON array like this: ["sentence 1", "sentence 2", "sentence 3", "sentence 4"]. Do not write anything else.`
+            : `Buat 4 kalimat pendek dalam Bahasa Indonesia menggunakan kata "${context}". Output HANYA JSON array seperti ini: ["kalimat 1", "kalimat 2", "kalimat 3", "kalimat 4"]. Jangan tulis apapun selain JSON.`;
 
         console.log("Calling OpenRouter with model:", model);
         const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
@@ -33,7 +41,7 @@ export async function POST(req: NextRequest) {
                 messages: [
                     {
                         role: "user",
-                        content: `Buat 4 kalimat pendek dalam Bahasa Indonesia menggunakan kata "${context}". Output HANYA JSON array seperti ini: ["kalimat 1", "kalimat 2", "kalimat 3", "kalimat 4"]. Jangan tulis apapun selain JSON.`
+                        content: prompt
                     }
                 ],
                 max_tokens: 200,
@@ -52,7 +60,7 @@ export async function POST(req: NextRequest) {
         if (content) {
             try {
                 // Try to extract JSON from the response
-                const jsonMatch = content.match(/\[.*\]/s);
+                const jsonMatch = content.match(/\[[\s\S]*\]/);
                 if (jsonMatch) {
                     const parsed = JSON.parse(jsonMatch[0]);
                     if (Array.isArray(parsed)) {
