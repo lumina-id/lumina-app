@@ -67,7 +67,7 @@ export default function MainPage() {
         fetchSuggestions(message);
         lastFetchedContext.current = message;
       }
-    }, 5000); // 5 second debounce
+    }, 1000); // 5 second debounce
 
     return () => clearTimeout(timer);
   }, [message]);

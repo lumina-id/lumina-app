@@ -46,23 +46,46 @@ export default function TelegramModal({
     { id: "nurseSarah", name: texts.contacts.nurseSarah.name, label: texts.contacts.nurseSarah.label, avatar: "N" },
   ];
 
-  const handleContactClick = (contact: Contact) => {
+  const handleContactClick = async (contact: Contact) => {
     if (sentContact) return;
-    
+
     setSelectedContact(contact.id);
     setSentContact(contact.id);
-    
-    setTimeout(() => {
-      setShowToast(true);
-      onSend(contact.name);
-      
-      setTimeout(() => {
-        setShowToast(false);
-        setSelectedContact("anita");
+
+    try {
+      // Call Telegram API
+      const res = await fetch('/api/telegram', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          message: message,
+          contactId: contact.id
+        }),
+      });
+
+      const data = await res.json();
+      console.log("Telegram send result:", data);
+
+      if (data.success) {
+        setShowToast(true);
+        onSend(contact.name);
+
+        setTimeout(() => {
+          setShowToast(false);
+          setSelectedContact("anita");
+          setSentContact(null);
+          onClose();
+        }, 2000);
+      } else {
+        console.error("Failed to send:", data.error);
         setSentContact(null);
-        onClose();
-      }, 2000);
-    }, 500);
+        alert("Gagal mengirim pesan: " + (data.error || "Unknown error"));
+      }
+    } catch (error) {
+      console.error("Telegram API error:", error);
+      setSentContact(null);
+      alert("Gagal mengirim pesan. Periksa koneksi.");
+    }
   };
 
   const handleClose = () => {
@@ -97,13 +120,12 @@ export default function TelegramModal({
                 key={contact.id}
                 onClick={() => handleContactClick(contact)}
                 disabled={sentContact !== null && sentContact !== contact.id}
-                className={`w-full flex items-center gap-4 p-4 rounded-[16px] transition-all border-2 ${
-                  selectedContact === contact.id
+                className={`w-full flex items-center gap-4 p-4 rounded-[16px] transition-all border-2 ${selectedContact === contact.id
                     ? "border-[#0B1FB7] bg-white"
                     : "border-[#e5e7eb] bg-white hover:bg-[#f9fafb]"
-                }`}
+                  }`}
               >
-                <div 
+                <div
                   className="w-[48px] h-[48px] rounded-full flex items-center justify-center"
                   style={{
                     background: "linear-gradient(180deg, #354BF3 0%, #0B1FB7 100%)"
