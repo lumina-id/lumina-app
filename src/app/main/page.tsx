@@ -14,7 +14,7 @@ import GazeCursor from "@/components/gaze/GazeCursor";
 export default function MainPage() {
   const { t } = useLanguage();
   const videoRef = useRef<HTMLVideoElement>(null);
-  
+
   // Initialize Face Mesh
   useFaceMesh(videoRef);
 
@@ -52,18 +52,76 @@ export default function MainPage() {
   } = useMessageComposer();
 
   const [isTelegramOpen, setIsTelegramOpen] = useState(false);
+  const [suggestions, setSuggestions] = useState<string[]>([]);
+  const [isSpeaking, setIsSpeaking] = useState(false);
+  const [ttsCooldown, setTtsCooldown] = useState(false);
+  const lastFetchedContext = useRef<string>("");
 
-  const suggestions = [
-    t.main.suggestions.option1,
-    t.main.suggestions.option2,
-    t.main.suggestions.option3,
-    t.main.suggestions.option4,
-  ];
+  // Debounce fetching suggestions - 5 seconds after user stops typing
+  useEffect(() => {
+    // Don't fetch if context hasn't changed
+    if (message === lastFetchedContext.current) return;
+
+    const timer = setTimeout(() => {
+      if (message && message !== lastFetchedContext.current) {
+        fetchSuggestions(message);
+        lastFetchedContext.current = message;
+      }
+    }, 5000); // 5 second debounce
+
+    return () => clearTimeout(timer);
+  }, [message]);
+
+  const fetchSuggestions = async (context: string) => {
+    console.log("Frontend fetching suggestions for:", context);
+    try {
+      const res = await fetch('/api/suggestions', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ context }),
+      });
+      const data = await res.json();
+      if (data.suggestions && Array.isArray(data.suggestions)) {
+        setSuggestions(data.suggestions);
+      }
+    } catch (error) {
+      console.error("Failed to fetch suggestions", error);
+    }
+  };
+
+  const handleSpeak = async () => {
+    if (!message || ttsCooldown) return;
+
+    try {
+      setIsSpeaking(true);
+      setTtsCooldown(true);
+
+      // 1 second cooldown before allowing another TTS request
+      setTimeout(() => setTtsCooldown(false), 1000);
+
+      const res = await fetch('/api/tts', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ text: message }),
+      });
+      const data = await res.json();
+
+      if (data.audioUrl) {
+        const audio = new Audio(data.audioUrl);
+        audio.play();
+        audio.onended = () => setIsSpeaking(false);
+        audio.onerror = () => setIsSpeaking(false);
+      } else {
+        setIsSpeaking(false);
+      }
+    } catch (error) {
+      console.error("TTS Error", error);
+      setIsSpeaking(false);
+    }
+  };
 
   const handleSend = () => {
-    if (message) {
-      clearMessage();
-    }
+    handleSpeak();
   };
 
   const handleTelegramClick = () => {
@@ -87,7 +145,7 @@ export default function MainPage() {
         muted
         className="fixed top-0 left-0 w-1 h-1 opacity-0 pointer-events-none"
       />
-      
+
       <Header />
 
       <main className="flex-1 flex flex-col items-center px-4 py-8 pb-20">
@@ -113,7 +171,12 @@ export default function MainPage() {
           />
 
           <SuggestedResponses
-            responses={suggestions}
+            responses={suggestions.length > 0 ? suggestions : [
+              t.main.suggestions.option1,
+              t.main.suggestions.option2,
+              t.main.suggestions.option3,
+              t.main.suggestions.option4,
+            ]}
             selectedIndex={selectedSuggestionIndex}
             onSelect={selectSuggestion}
           />
