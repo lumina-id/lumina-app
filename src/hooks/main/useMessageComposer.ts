@@ -22,7 +22,12 @@ export const useMessageComposer = (): UseMessageComposerReturn => {
   }, []);
 
   const appendChar = useCallback((char: string) => {
-    setMessageState((prev) => prev + char);
+    setMessageState((prev) => {
+      // If empty or previous char is space/punctuation, this is start of word - capitalize
+      const isStartOfWord = prev.length === 0 || /[\s.,!?]$/.test(prev);
+      const processedChar = isStartOfWord ? char.toUpperCase() : char.toLowerCase();
+      return prev + processedChar;
+    });
     setSelectedSuggestionIndex(null);
   }, []);
 
