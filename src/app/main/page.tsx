@@ -60,20 +60,20 @@ export default function MainPage() {
   const [ttsCooldown, setTtsCooldown] = useState(false);
   const lastFetchedContext = useRef<string>("");
 
-  // Debounce fetching suggestions - 5 seconds after user stops typing
+  // Debounce fetching suggestions - 3 seconds after user stops typing
   useEffect(() => {
-    // Don't fetch if context hasn't changed
-    if (message === lastFetchedContext.current) return;
+    // Don't fetch if context hasn't changed or if a suggestion is selected
+    if (message === lastFetchedContext.current || selectedSuggestionIndex !== null) return;
 
     const timer = setTimeout(() => {
       if (message && message !== lastFetchedContext.current) {
         fetchSuggestions(message);
         lastFetchedContext.current = message;
       }
-    }, 1000); // 1 second debounce
+    }, 3000); // 3 second debounce
 
     return () => clearTimeout(timer);
-  }, [message]);
+  }, [message, selectedSuggestionIndex]);
 
   const fetchSuggestions = async (context: string) => {
     console.log("Frontend fetching suggestions for:", context);

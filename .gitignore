@@ -36,5 +36,3 @@ yarn-error.log*
 next-env.d.ts
 
 public/audio/
-
-docker-compose.yml
