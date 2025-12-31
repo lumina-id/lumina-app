@@ -245,7 +245,7 @@ export default function OnboardingPage() {
               </p>
             </div>
 
-            <div className="relative">
+            <div className="flex flex-col items-center w-full">
               <button
                 ref={buttonRef}
                 onClick={() => {
@@ -268,16 +268,17 @@ export default function OnboardingPage() {
               >
                 {t.onboarding.step2.buttonText}
               </button>
+              
+              {/* Blink detected feedback - centered below button */}
+              {blinkDetected && (
+                <div className="w-full flex items-center justify-center gap-2 animate-fade-in-simple mt-4">
+                  <span className="text-[#22c55e] text-[18px]">✓</span>
+                  <p className="text-[#22c55e] text-[16px] tracking-[-0.72px] font-medium">
+                    {t.onboarding.step2.blinkDetected}
+                  </p>
+                </div>
+              )}
             </div>
-
-            {blinkDetected && (
-              <div className="flex items-center justify-center gap-2 animate-fade-in w-full">
-                <span className="text-[#22c55e] text-[18px]">✓</span>
-                <p className="text-[#22c55e] text-[16px] tracking-[-0.72px] font-medium">
-                  {t.onboarding.step2.blinkDetected}
-                </p>
-              </div>
-            )}
           </div>
         )}
 
