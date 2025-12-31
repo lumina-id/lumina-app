@@ -1,6 +1,7 @@
 "use client";
-import { useState } from "react";
 import Modal from "@/components/ui/Modal";
+import { useState, useRef, useEffect } from "react";
+import { useGaze } from "@/context/GazeContext";
 
 interface Contact {
   id: string;
@@ -36,14 +37,73 @@ export default function TelegramModal({
   onSend,
   texts,
 }: TelegramModalProps) {
+  const { gazeX, gazeY } = useGaze();
+  const [hoveredContact, setHoveredContact] = useState<string | null>(null);
+  const [hoveredCancel, setHoveredCancel] = useState(false);
+  const contactRefs = useRef<Map<string, HTMLButtonElement | null>>(new Map());
+  const cancelRef = useRef<HTMLButtonElement>(null);
+
   const [selectedContact, setSelectedContact] = useState<string | null>("anita");
   const [sentContact, setSentContact] = useState<string | null>(null);
   const [showToast, setShowToast] = useState(false);
 
+  // Gaze hover detection
+  useEffect(() => {
+    if (!isOpen) return;
+
+    const padding = 20;
+
+    // Check contacts
+    let foundContact: string | null = null;
+    contactRefs.current.forEach((el, id) => {
+      if (!el) return;
+      const rect = el.getBoundingClientRect();
+      const isOver =
+        gazeX >= rect.left - padding &&
+        gazeX <= rect.right + padding &&
+        gazeY >= rect.top - padding &&
+        gazeY <= rect.bottom + padding;
+
+      if (isOver) foundContact = id;
+    });
+    setHoveredContact(foundContact);
+
+    // Check cancel button
+    if (cancelRef.current) {
+      const rect = cancelRef.current.getBoundingClientRect();
+      const isOver =
+        gazeX >= rect.left - padding &&
+        gazeX <= rect.right + padding &&
+        gazeY >= rect.top - padding &&
+        gazeY <= rect.bottom + padding;
+      setHoveredCancel(isOver);
+    }
+  }, [gazeX, gazeY, isOpen]);
+
+  const setContactRef = (id: string) => (el: HTMLButtonElement | null) => {
+    contactRefs.current.set(id, el);
+  };
+
   const contacts: Contact[] = [
-    { id: "anita", name: texts.contacts.anita.name, label: texts.contacts.anita.label, avatar: "A", isDefault: true },
-    { id: "mom", name: texts.contacts.mom.name, label: texts.contacts.mom.label, avatar: "M" },
-    { id: "nurseSarah", name: texts.contacts.nurseSarah.name, label: texts.contacts.nurseSarah.label, avatar: "N" },
+    {
+      id: "anita",
+      name: texts.contacts.anita.name,
+      label: texts.contacts.anita.label,
+      avatar: "A",
+      isDefault: true,
+    },
+    {
+      id: "mom",
+      name: texts.contacts.mom.name,
+      label: texts.contacts.mom.label,
+      avatar: "M",
+    },
+    {
+      id: "nurseSarah",
+      name: texts.contacts.nurseSarah.name,
+      label: texts.contacts.nurseSarah.label,
+      avatar: "N",
+    },
   ];
 
   const handleContactClick = async (contact: Contact) => {
@@ -54,12 +114,12 @@ export default function TelegramModal({
 
     try {
       // Call Telegram API
-      const res = await fetch('/api/telegram', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+      const res = await fetch("/api/telegram", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           message: message,
-          contactId: contact.id
+          contactId: contact.id,
         }),
       });
 
@@ -98,7 +158,7 @@ export default function TelegramModal({
   return (
     <>
       <Modal isOpen={isOpen} onClose={handleClose}>
-        <div className="bg-white rounded-[24px] p-6 shadow-xl">
+        <div className="bg-white rounded-[24px] p-6 shadow-xl w-full max-w-md mx-auto">
           <div className="text-center mb-6">
             <h2 className="text-[24px] font-semibold text-[#111827] tracking-[-0.5px] mb-2">
               {texts.title}
@@ -115,68 +175,86 @@ export default function TelegramModal({
           </div>
 
           <div className="space-y-3 mb-4">
-            {contacts.map((contact) => (
-              <button
-                key={contact.id}
-                onClick={() => handleContactClick(contact)}
-                disabled={sentContact !== null && sentContact !== contact.id}
-                className={`w-full flex items-center gap-4 p-4 rounded-[16px] transition-all border-2 ${selectedContact === contact.id
-                    ? "border-[#0B1FB7] bg-white"
-                    : "border-[#e5e7eb] bg-white hover:bg-[#f9fafb]"
+            {contacts.map((contact) => {
+              // Use hover state if active, otherwise fallback to clicked state for coloring
+              // BUT user wants ring to move with pointer. So if hovered, it should probably override or show as active.
+              // Let's make "isHovered" trigger the blue border style.
+              const isHovered = hoveredContact === contact.id;
+              const showActive = isHovered;
+
+              return (
+                <button
+                  key={contact.id}
+                  ref={setContactRef(contact.id)}
+                  onClick={() => handleContactClick(contact)}
+                  disabled={sentContact !== null && sentContact !== contact.id}
+                  className={`w-full flex items-center gap-4 p-4 rounded-[16px] transition-all border-2 ${
+                    showActive
+                      ? "border-[#0B1FB7] bg-white shadow-[0_0_15px_rgba(11,31,183,0.15)]"
+                      : "border-[#e5e7eb] bg-white hover:bg-[#f9fafb]"
                   }`}
-              >
-                <div
-                  className="w-[48px] h-[48px] rounded-full flex items-center justify-center"
-                  style={{
-                    background: "linear-gradient(180deg, #354BF3 0%, #0B1FB7 100%)"
-                  }}
                 >
-                  <span className="text-white text-[18px] font-semibold">
-                    {contact.avatar}
-                  </span>
-                </div>
-                <div className="flex-1 text-left">
-                  <div className="flex items-center gap-2">
-                    <span className="text-[16px] font-medium text-[#111827] tracking-[-0.3px]">
-                      {contact.name}
+                  <div
+                    className="w-[48px] h-[48px] rounded-full flex items-center justify-center"
+                    style={{
+                      background:
+                        "linear-gradient(180deg, #354BF3 0%, #0B1FB7 100%)",
+                    }}
+                  >
+                    <span className="text-white text-[18px] font-semibold">
+                      {contact.avatar}
                     </span>
-                    {contact.isDefault && selectedContact === contact.id && (
-                      <span className="text-[12px] text-[#6b7280] bg-[#e5e7eb] px-2 py-0.5 rounded-md">
-                        Default
-                      </span>
-                    )}
-                    {sentContact === contact.id && (
-                      <span className="text-[12px] text-white bg-[#22c55e] px-2 py-0.5 rounded-md">
-                        {texts.sent}
-                      </span>
-                    )}
                   </div>
-                  <span className="text-[14px] text-[#0B1FB7] tracking-[-0.3px]">
-                    {contact.label}
-                  </span>
-                </div>
-                <svg
-                  width="24"
-                  height="24"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  className="text-[#9ca3af]"
-                >
-                  <path
-                    d="M9 18l6-6-6-6"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  />
-                </svg>
-              </button>
-            ))}
+                  <div className="flex-1 text-left">
+                    <div className="flex items-center gap-2">
+                      <span className="text-[16px] font-medium text-[#111827] tracking-[-0.3px]">
+                        {contact.name}
+                      </span>
+                      {contact.isDefault && (
+                        <span className="text-[12px] text-[#6b7280] bg-[#e5e7eb] px-2 py-0.5 rounded-md">
+                          Default
+                        </span>
+                      )}
+                      {sentContact === contact.id && (
+                        <span className="text-[12px] text-white bg-[#22c55e] px-2 py-0.5 rounded-md">
+                          {texts.sent}
+                        </span>
+                      )}
+                    </div>
+                    <span className="text-[14px] text-[#0B1FB7] tracking-[-0.3px]">
+                      {contact.label}
+                    </span>
+                  </div>
+                  <svg
+                    width="24"
+                    height="24"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    className={`${
+                      showActive ? "text-[#0B1FB7]" : "text-[#9ca3af]"
+                    }`}
+                  >
+                    <path
+                      d="M9 18l6-6-6-6"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                  </svg>
+                </button>
+              );
+            })}
           </div>
 
           <button
+            ref={cancelRef}
             onClick={handleClose}
-            className="w-full py-4 bg-[#f3f4f6] rounded-[16px] text-[16px] font-medium text-[#6b7280] hover:bg-[#e5e7eb] transition-colors"
+            className={`w-full py-4 rounded-[16px] text-[16px] font-medium transition-colors ${
+              hoveredCancel
+                ? "bg-[#fee2e2] text-[#ef4444] border-2 border-[#fca5a5]"
+                : "bg-[#f3f4f6] text-[#6b7280] hover:bg-[#e5e7eb] border-2 border-transparent"
+            }`}
           >
             {texts.cancel}
           </button>
@@ -186,12 +264,7 @@ export default function TelegramModal({
       {showToast && sentContact && (
         <div className="fixed bottom-8 left-1/2 -translate-x-1/2 z-[60] animate-fade-in">
           <div className="bg-[#22c55e] text-white px-6 py-3 rounded-full shadow-lg flex items-center gap-2">
-            <svg
-              width="20"
-              height="20"
-              viewBox="0 0 24 24"
-              fill="none"
-            >
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
               <path
                 d="M20 6L9 17l-5-5"
                 stroke="currentColor"
@@ -201,7 +274,10 @@ export default function TelegramModal({
               />
             </svg>
             <span className="text-[14px] font-medium">
-              {texts.toastMessage.replace("{name}", contacts.find(c => c.id === sentContact)?.name || "")}
+              {texts.toastMessage.replace(
+                "{name}",
+                contacts.find((c) => c.id === sentContact)?.name || ""
+              )}
             </span>
           </div>
         </div>

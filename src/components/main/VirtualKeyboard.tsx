@@ -112,12 +112,12 @@ export default function VirtualKeyboard({
           ref={setKeyRef(key, isMobile)}
           onClick={() => handleKeyClick(key)}
           className={`flex items-center justify-center rounded-[12px] transition-all shadow-sm ${activeStyle} ${
-            isMobile ? "w-[48px] h-[48px]" : "w-[60px] h-[56px]"
+            isMobile ? "w-[40px] h-[44px]" : "w-[60px] h-[56px]"
           }`}
         >
           <svg
-            width={isMobile ? "20" : "24"}
-            height={isMobile ? "20" : "24"}
+            width={isMobile ? "18" : "24"}
+            height={isMobile ? "18" : "24"}
             viewBox="0 0 24 24"
             fill="none"
             xmlns="http://www.w3.org/2000/svg"
@@ -147,7 +147,7 @@ export default function VirtualKeyboard({
           key={key}
           ref={setKeyRef(key, isMobile)}
           onClick={() => handleKeyClick(key)}
-          className={`w-[100px] h-[48px] flex items-center justify-center rounded-[12px] transition-all shadow-sm text-[16px] font-medium text-[#202020] ${activeStyle}`}
+          className={`w-[88px] h-[44px] flex items-center justify-center rounded-[12px] transition-all shadow-sm text-[16px] font-medium text-[#202020] ${activeStyle}`}
         >
           {texts.space}
         </button>
@@ -159,8 +159,8 @@ export default function VirtualKeyboard({
         key={key}
         ref={setKeyRef(key, isMobile)}
         onClick={() => handleKeyClick(key)}
-        className={`flex items-center justify-center rounded-[12px] transition-all shadow-sm text-[18px] font-medium text-[#202020] ${activeStyle} ${
-          isMobile ? "w-[48px] h-[48px]" : "w-[60px] h-[56px]"
+        className={`flex items-center justify-center rounded-[12px] transition-all shadow-sm font-medium text-[#202020] ${activeStyle} ${
+          isMobile ? "w-[40px] h-[44px] text-[16px]" : "w-[60px] h-[56px] text-[18px]"
         }`}
       >
         {key}
@@ -197,9 +197,9 @@ export default function VirtualKeyboard({
       </div>
 
       {/* Mobile Layout */}
-      <div className="flex md:hidden flex-col items-center gap-2">
+      <div className="flex md:hidden flex-col items-center gap-1">
         {MOBILE_ROWS.map((row, rowIndex) => (
-          <div key={rowIndex} className="flex gap-2 justify-center">
+          <div key={rowIndex} className="flex gap-1 justify-center">
             {row.map((key) => renderKey(key, true))}
           </div>
         ))}
