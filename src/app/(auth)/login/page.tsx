@@ -1,9 +1,11 @@
 "use client";
 import { AuthButton, AuthCard, AuthInput } from "@/components/auth";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 
 export default function LoginPage() {
+  const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
@@ -13,7 +15,10 @@ export default function LoginPage() {
     setLoading(true);
     // TODO: Implement actual login logic
     console.log("Login attempt:", { email, password });
-    setTimeout(() => setLoading(false), 1000);
+    setTimeout(() => {
+      setLoading(false);
+      router.push("/onboarding");
+    }, 1000);
   };
 
   return (
@@ -26,7 +31,7 @@ export default function LoginPage() {
           id="email"
           label="Email"
           type="email"
-          placeholder="Input your email"  
+          placeholder="Input your email"
           value={email}
           onChange={setEmail}
         />
