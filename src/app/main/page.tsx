@@ -70,7 +70,7 @@ export default function MainPage() {
         fetchSuggestions(message);
         lastFetchedContext.current = message;
       }
-    }, 3000); // 3 second debounce
+    }, 1000); // 1 second debounce
 
     return () => clearTimeout(timer);
   }, [message]);
