@@ -1,9 +1,11 @@
 "use client";
 import { AuthButton, AuthCard, AuthInput } from "@/components/auth";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 
 export default function SignupPage() {
+  const router = useRouter();
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -20,7 +22,10 @@ export default function SignupPage() {
       password,
       confirmPassword,
     });
-    setTimeout(() => setLoading(false), 1000);
+    setTimeout(() => {
+      setLoading(false);
+      router.push("/login");
+    }, 1000);
   };
 
   return (
