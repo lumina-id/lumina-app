@@ -17,16 +17,16 @@ const DESKTOP_ROWS = [
   ["1", "2", "3", "4", "5", "6", "7", "8", "9", "0"],
   ["Q", "W", "E", "R", "T", "Y", "U", "I", "O", "P"],
   ["A", "S", "D", "F", "G", "H", "J", "K", "L", "Z"],
-  ["SHIFT", "X", "C", "V", "B", "N", "M", ",", ".", "?", "BACKSPACE"],
+  ["X", "C", "V", "B", "N", "M", ",", ".", "?", "BACKSPACE"],
 ];
 
 const MOBILE_ROWS = [
   ["Q", "W", "E", "R", "T", "Y", "U"],
   ["I", "O", "P", "A", "S", "D", "F"],
   ["G", "H", "J", "K", "L", "Z", "X"],
-  ["SHIFT", "C", "V", "B", "N", "M", "BACKSPACE"],
-  ["1", "2", "3", "4", "5", "6", "7"],
-  ["8", "9", "0", ".", "SPACE", ",", "?"],
+  ["C", "V", "B", "N", "M", "1", "2"],
+  ["3", "4", "5", "6", "7", "8", "9"],
+  ["0", ".", "SPACE", ",", "?", "BACKSPACE"],
 ];
 
 // Flatten all keys for indexing
@@ -40,7 +40,6 @@ export default function VirtualKeyboard({
   texts,
 }: VirtualKeyboardProps) {
   const [activeKey, setActiveKey] = useState<string | null>(null);
-  const [isUpperCase, setIsUpperCase] = useState(true); // Start with uppercase
   const { gazeX, gazeY } = useGaze();
   const keyRefs = useRef<Map<string, HTMLButtonElement | null>>(new Map());
   const [gazeHoverKey, setGazeHoverKey] = useState<string | null>(null);
@@ -74,17 +73,12 @@ export default function VirtualKeyboard({
     setActiveKey(key);
     setTimeout(() => setActiveKey(null), 200);
 
-    if (key === "SHIFT") {
-      setIsUpperCase(!isUpperCase);
-    } else if (key === "BACKSPACE") {
+    if (key === "BACKSPACE") {
       onBackspace();
     } else if (key === "SPACE" || key === "SPACE_DESKTOP") {
       onSpace();
     } else {
-      // Apply case conversion for letters
-      const isLetter = /^[A-Z]$/.test(key);
-      const outputKey = isLetter && !isUpperCase ? key.toLowerCase() : key;
-      onKeyPress(outputKey);
+      onKeyPress(key);
     }
   };
 
@@ -98,53 +92,18 @@ export default function VirtualKeyboard({
 
   const renderKey = (key: string, isMobile: boolean = false) => {
     const isBackspace = key === "BACKSPACE";
-    const isShift = key === "SHIFT";
     const isSpace = key === "SPACE";
     const isActive = activeKey === key;
     const refKey = isMobile ? `M_${key}` : `D_${key}`;
     const isGazeHover = gazeHoverKey === refKey;
-    const isLetter = /^[A-Z]$/.test(key);
 
     // Active Style: Green Outline #33FF7E
     // Gaze Hover Style: Blue glow
-    // Shift active style: highlighted when uppercase mode
     const activeStyle = isActive
       ? "border-[3px] border-[#33FF7E] shadow-[0_0_15px_rgba(51,255,126,0.5)] bg-white transform scale-105 z-10"
       : isGazeHover
       ? "border-[2px] border-[#354BF3] shadow-[0_0_12px_rgba(53,75,243,0.4)] bg-[#eef2ff] transform scale-105 z-10"
-      : isShift && isUpperCase
-      ? "bg-[#e0e7ff] border border-[#a5b4fc]"
       : "bg-[#f1f5f9] border border-transparent btn-hover-key";
-
-    if (isShift) {
-      return (
-        <button
-          key={key}
-          ref={setKeyRef(key, isMobile)}
-          onClick={() => handleKeyClick(key)}
-          className={`flex items-center justify-center rounded-[12px] transition-all shadow-sm ${activeStyle} ${
-            isMobile ? "w-[48px] h-[48px]" : "w-[60px] h-[56px]"
-          }`}
-        >
-          <svg
-            width={isMobile ? "20" : "24"}
-            height={isMobile ? "20" : "24"}
-            viewBox="0 0 24 24"
-            fill="none"
-            xmlns="http://www.w3.org/2000/svg"
-          >
-            <path
-              d="M12 4l-8 8h5v8h6v-8h5l-8-8z"
-              stroke={isUpperCase ? "#4f46e5" : "#374151"}
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              fill={isUpperCase ? "#4f46e5" : "none"}
-            />
-          </svg>
-        </button>
-      );
-    }
 
     if (isBackspace) {
       return (
@@ -195,9 +154,6 @@ export default function VirtualKeyboard({
       );
     }
 
-    // Display letter with correct case
-    const displayKey = isLetter && !isUpperCase ? key.toLowerCase() : key;
-
     return (
       <button
         key={key}
@@ -207,7 +163,7 @@ export default function VirtualKeyboard({
           isMobile ? "w-[48px] h-[48px]" : "w-[60px] h-[56px]"
         }`}
       >
-        {displayKey}
+        {key}
       </button>
     );
   };
