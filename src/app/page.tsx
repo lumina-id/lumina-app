@@ -1,9 +1,19 @@
-import OnboardingPage from "./onboarding/page";
+import {
+  LandingNavbar,
+  HeroSection,
+  CommunicationSection,
+  FeaturesSection,
+  FooterSection,
+} from "@/components/landing";
 
 export default function Home() {
   return (
-    <main>
-      <OnboardingPage />
+    <main className="min-h-screen">
+      <LandingNavbar />
+      <HeroSection />
+      <CommunicationSection />
+      <FeaturesSection />
+      <FooterSection />
     </main>
   );
 }
