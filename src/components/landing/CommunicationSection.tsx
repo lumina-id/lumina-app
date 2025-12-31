@@ -76,13 +76,6 @@ export default function CommunicationSection() {
               &quot;I&apos;m okay&quot;
             </span>
           </div>
-
-          {/* Decorative code/text on right side */}
-          <div className="absolute right-4 top-1/2 -translate-y-1/2 text-[10px] text-white/20 font-mono hidden lg:block">
-            <div>communicating()</div>
-            <div>responding()</div>
-            <div>understanding()</div>
-          </div>
         </div>
       </div>
     </section>
