@@ -55,6 +55,7 @@ export default function MainPage() {
 
   const [isTelegramOpen, setIsTelegramOpen] = useState(false);
   const [suggestions, setSuggestions] = useState<string[]>([]);
+  const [isLoadingSuggestions, setIsLoadingSuggestions] = useState(false);
   const [isSpeaking, setIsSpeaking] = useState(false);
   const [ttsCooldown, setTtsCooldown] = useState(false);
   const lastFetchedContext = useRef<string>("");
@@ -76,6 +77,7 @@ export default function MainPage() {
 
   const fetchSuggestions = async (context: string) => {
     console.log("Frontend fetching suggestions for:", context);
+    setIsLoadingSuggestions(true);
     try {
       const res = await fetch("/api/suggestions", {
         method: "POST",
@@ -88,6 +90,8 @@ export default function MainPage() {
       }
     } catch (error) {
       console.error("Failed to fetch suggestions", error);
+    } finally {
+      setIsLoadingSuggestions(false);
     }
   };
 
@@ -212,6 +216,7 @@ export default function MainPage() {
             }
             selectedIndex={selectedSuggestionIndex}
             onSelect={selectSuggestion}
+            isLoading={isLoadingSuggestions}
           />
 
           <p className="text-[14px] text-[#94a3b8] text-center tracking-[-0.56px]">

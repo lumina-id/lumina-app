@@ -1,17 +1,21 @@
 "use client";
 import { useGaze } from "@/context/GazeContext";
 import { useEffect, useRef, useState } from "react";
+import Skeleton from "react-loading-skeleton";
+import "react-loading-skeleton/dist/skeleton.css";
 
 interface SuggestedResponsesProps {
   responses: string[];
   selectedIndex: number | null;
   onSelect: (response: string, index: number) => void;
+  isLoading?: boolean;
 }
 
 export default function SuggestedResponses({
   responses,
   selectedIndex,
   onSelect,
+  isLoading = false,
 }: SuggestedResponsesProps) {
   const { gazeX, gazeY } = useGaze();
   const buttonRefs = useRef<(HTMLButtonElement | null)[]>([]);
@@ -47,6 +51,21 @@ export default function SuggestedResponses({
 
     setGazeHoverIndex(foundIndex);
   }, [gazeX, gazeY]);
+
+  if (isLoading) {
+    return (
+      <div className="w-full grid grid-cols-1 md:grid-cols-2 gap-3">
+        {[1, 2, 3, 4].map((i) => (
+          <div
+            key={i}
+            className="h-[56px] w-full rounded-[12px] overflow-hidden"
+          >
+            <Skeleton height={56} borderRadius={12} />
+          </div>
+        ))}
+      </div>
+    );
+  }
 
   return (
     <div className="w-full grid grid-cols-1 md:grid-cols-2 gap-3">
