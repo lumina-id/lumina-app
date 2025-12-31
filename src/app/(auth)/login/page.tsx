@@ -26,7 +26,7 @@ export default function LoginPage() {
           id="email"
           label="Email"
           type="email"
-          placeholder="user@email.com"
+          placeholder="Input your email"  
           value={email}
           onChange={setEmail}
         />
@@ -34,7 +34,7 @@ export default function LoginPage() {
           id="password"
           label="Password"
           type="password"
-          placeholder="P45sw0rd"
+          placeholder="Input your password"
           value={password}
           onChange={setPassword}
         />
@@ -47,7 +47,7 @@ export default function LoginPage() {
           Don&apos;t have account?{" "}
           <Link
             href="/signup"
-            className="text-primary font-medium hover:underline"
+            className="text-[#0B1FB7] font-semibold hover:underline"
           >
             Sign up
           </Link>

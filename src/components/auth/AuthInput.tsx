@@ -40,7 +40,7 @@ export default function AuthInput({
           style={{
             borderColor: '#e5e7eb',
           }}
-          className="w-full px-[16px] py-[14px] border-[1.5px] rounded-[12px] text-[14px] md:text-[16px] text-black placeholder:text-[#9ca3af] focus:outline-none focus:border-[#081787] focus:ring-2 focus:ring-[#081787]/20 transition-all bg-white"
+          className="w-full px-[16px] py-[14px] border-[1.5px] rounded-[12px] text-[14px] md:text-[16px] text-black placeholder:text-[#9ca3af] focus:outline-none focus:border-[#0B1FB7] focus:ring-2 focus:ring-[#0B1FB7]/20 transition-all bg-white"
         />
         {isPassword && (
           <button

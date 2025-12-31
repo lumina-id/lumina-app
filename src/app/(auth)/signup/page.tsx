@@ -33,7 +33,7 @@ export default function SignupPage() {
           id="fullName"
           label="Full Name"
           type="text"
-          placeholder="User Name"
+          placeholder="Input your full name"
           value={fullName}
           onChange={setFullName}
         />
@@ -41,7 +41,7 @@ export default function SignupPage() {
           id="email"
           label="Email"
           type="email"
-          placeholder="user@email.com"
+          placeholder="Input your email"
           value={email}
           onChange={setEmail}
         />
@@ -49,7 +49,7 @@ export default function SignupPage() {
           id="password"
           label="Password"
           type="password"
-          placeholder="P45sw0rd"
+          placeholder="Input your password"
           value={password}
           onChange={setPassword}
         />
@@ -57,7 +57,7 @@ export default function SignupPage() {
           id="confirmPassword"
           label="Confirm Password"
           type="password"
-          placeholder="P45sw0rd"
+          placeholder="Input your confirm password"
           value={confirmPassword}
           onChange={setConfirmPassword}
         />
@@ -70,7 +70,7 @@ export default function SignupPage() {
           Have account?{" "}
           <Link
             href="/login"
-            className="text-primary font-medium hover:underline"
+            className="text-[#0B1FB7] font-semibold hover:underline"
           >
             Sign in
           </Link>
