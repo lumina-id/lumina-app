@@ -100,7 +100,7 @@ export async function POST(req: NextRequest) {
             </voice>
         </speak>`;
 
-        return new Promise((resolve) => {
+        return new Promise<Response>((resolve) => {
             synthesizer.speakSsmlAsync(
                 ssml,
                 async (result) => {

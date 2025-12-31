@@ -1,4 +1,6 @@
-import { useState } from "react";
+"use client";
+import { useState, useRef, useEffect } from "react";
+import { useGaze } from "@/context/GazeContext";
 
 interface VirtualKeyboardProps {
   onKeyPress: (key: string) => void;
@@ -27,6 +29,9 @@ const MOBILE_ROWS = [
   ["0", ".", "SPACE", ",", "?", "BACKSPACE"],
 ];
 
+// Flatten all keys for indexing
+const ALL_KEYS = [...DESKTOP_ROWS.flat(), "SPACE_DESKTOP"];
+
 export default function VirtualKeyboard({
   onKeyPress,
   onSpace,
@@ -35,6 +40,57 @@ export default function VirtualKeyboard({
   texts,
 }: VirtualKeyboardProps) {
   const [activeKey, setActiveKey] = useState<string | null>(null);
+  const { gazeX, gazeY } = useGaze();
+  const keyRefs = useRef<Map<string, HTMLButtonElement | null>>(new Map());
+  const [gazeHoverKey, setGazeHoverKey] = useState<string | null>(null);
+  const hoverStartTime = useRef<number | null>(null);
+  const dwellTriggered = useRef(false);
+  const lastTriggeredKey = useRef<string | null>(null);
+
+  // Check gaze hover for all keys
+  useEffect(() => {
+    const padding = 10;
+    let foundKey: string | null = null;
+
+    keyRefs.current.forEach((el, key) => {
+      if (!el) return;
+
+      const rect = el.getBoundingClientRect();
+      const isOver =
+        gazeX >= rect.left - padding &&
+        gazeX <= rect.right + padding &&
+        gazeY >= rect.top - padding &&
+        gazeY <= rect.bottom + padding;
+
+      if (isOver) {
+        foundKey = key;
+      }
+    });
+
+    // If we're hovering over a different key, reset dwell tracking
+    if (foundKey !== gazeHoverKey) {
+      hoverStartTime.current = foundKey ? Date.now() : null;
+      dwellTriggered.current = false;
+      lastTriggeredKey.current = null;
+    }
+
+    setGazeHoverKey(foundKey);
+
+    // Track dwell time for click
+    if (foundKey && hoverStartTime.current) {
+      const elapsed = Date.now() - hoverStartTime.current;
+      if (elapsed >= 800 && !dwellTriggered.current && lastTriggeredKey.current !== foundKey) {
+        dwellTriggered.current = true;
+        lastTriggeredKey.current = foundKey;
+        handleKeyClick(foundKey);
+        // Reset for next dwell
+        setTimeout(() => {
+          dwellTriggered.current = false;
+          hoverStartTime.current = Date.now();
+        }, 300);
+      }
+    }
+  }, [gazeX, gazeY, gazeHoverKey]);
 
   const handleKeyClick = (key: string) => {
     // Visual Feedback
@@ -43,27 +99,36 @@ export default function VirtualKeyboard({
 
     if (key === "BACKSPACE") {
       onBackspace();
-    } else if (key === "SPACE") {
+    } else if (key === "SPACE" || key === "SPACE_DESKTOP") {
       onSpace();
     } else {
       onKeyPress(key);
     }
   };
 
+  const setKeyRef = (key: string) => (el: HTMLButtonElement | null) => {
+    keyRefs.current.set(key, el);
+  };
+
   const renderKey = (key: string, isMobile: boolean = false) => {
     const isBackspace = key === "BACKSPACE";
     const isSpace = key === "SPACE";
     const isActive = activeKey === key;
+    const isGazeHover = gazeHoverKey === key;
 
     // Active Style: Green Outline #33FF7E
+    // Gaze Hover Style: Blue glow
     const activeStyle = isActive 
       ? "border-[3px] border-[#33FF7E] shadow-[0_0_15px_rgba(51,255,126,0.5)] bg-white transform scale-105 z-10" 
-      : "bg-[#f1f5f9] hover:bg-[#e2e8f0] border border-transparent";
+      : isGazeHover
+      ? "border-[2px] border-[#354BF3] shadow-[0_0_12px_rgba(53,75,243,0.4)] bg-[#eef2ff] transform scale-105 z-10"
+      : "bg-[#f1f5f9] border border-transparent btn-hover-key";
 
     if (isBackspace) {
       return (
         <button
           key={key}
+          ref={setKeyRef(key)}
           onClick={() => handleKeyClick(key)}
           className={`flex items-center justify-center rounded-[12px] transition-all shadow-sm ${activeStyle} ${
             isMobile ? "w-[48px] h-[48px]" : "w-[60px] h-[56px]"
@@ -99,6 +164,7 @@ export default function VirtualKeyboard({
       return (
         <button
           key={key}
+          ref={setKeyRef(key)}
           onClick={() => handleKeyClick(key)}
           className={`w-[100px] h-[48px] flex items-center justify-center rounded-[12px] transition-all shadow-sm text-[16px] font-medium text-[#202020] ${activeStyle}`}
         >
@@ -110,6 +176,7 @@ export default function VirtualKeyboard({
     return (
       <button
         key={key}
+        ref={setKeyRef(key)}
         onClick={() => handleKeyClick(key)}
         className={`flex items-center justify-center rounded-[12px] transition-all shadow-sm text-[18px] font-medium text-[#202020] ${activeStyle} ${
           isMobile ? "w-[48px] h-[48px]" : "w-[60px] h-[56px]"
@@ -119,6 +186,9 @@ export default function VirtualKeyboard({
       </button>
     );
   };
+
+  const isSpaceGazeHover = gazeHoverKey === "SPACE_DESKTOP";
+  const isSpaceActive = activeKey === "SPACE" || activeKey === "SPACE_DESKTOP";
 
   return (
     <div className="w-full flex flex-col items-center gap-3">
@@ -131,11 +201,14 @@ export default function VirtualKeyboard({
         ))}
 
         <button
-          onClick={() => handleKeyClick("SPACE")}
-          className={`w-[280px] h-[52px] flex items-center justify-center rounded-full transition-all shadow-sm text-[18px] font-medium text-[#202020] mt-2 ${
-             activeKey === "SPACE" 
-             ? "border-[3px] border-[#33FF7E] shadow-[0_0_15px_rgba(51,255,126,0.5)] bg-white transform scale-105 z-10" 
-             : "bg-[#f1f5f9] hover:bg-[#e2e8f0] border border-transparent"
+          ref={setKeyRef("SPACE_DESKTOP")}
+          onClick={() => handleKeyClick("SPACE_DESKTOP")}
+          className={`w-[280px] h-[52px] flex items-center justify-center rounded-full shadow-sm text-[18px] font-medium text-[#202020] mt-2 transition-all ${
+            isSpaceActive
+              ? "border-[3px] border-[#33FF7E] shadow-[0_0_15px_rgba(51,255,126,0.5)] bg-white transform scale-105 z-10"
+              : isSpaceGazeHover
+              ? "border-[2px] border-[#354BF3] shadow-[0_0_12px_rgba(53,75,243,0.4)] bg-[#eef2ff] transform scale-105 z-10"
+              : "bg-[#f1f5f9] border border-transparent btn-hover-key"
           }`}
         >
           {texts.space}

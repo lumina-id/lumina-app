@@ -1,3 +1,7 @@
+"use client";
+import { useGazeHover } from "@/hooks/useGazeHover";
+import { useRef, useEffect, useState } from "react";
+import { useGaze } from "@/context/GazeContext";
 
 interface MessageInputProps {
   message: string;
@@ -14,6 +18,79 @@ export default function MessageInput({
   onTelegramClick,
 }: MessageInputProps) {
   const hasMessage = message.length > 0;
+  const { gazeX, gazeY } = useGaze();
+  
+  // Refs for gaze hover detection
+  const speakRef = useRef<HTMLButtonElement>(null);
+  const telegramRef = useRef<HTMLButtonElement>(null);
+  const [isSpeakGazeHover, setIsSpeakGazeHover] = useState(false);
+  const [isTelegramGazeHover, setIsTelegramGazeHover] = useState(false);
+  const speakHoverStart = useRef<number | null>(null);
+  const telegramHoverStart = useRef<number | null>(null);
+  const speakDwellTriggered = useRef(false);
+  const telegramDwellTriggered = useRef(false);
+
+  // Check gaze hover for speak button
+  useEffect(() => {
+    if (!speakRef.current) return;
+
+    const padding = 20;
+    const rect = speakRef.current.getBoundingClientRect();
+    const isOver =
+      gazeX >= rect.left - padding &&
+      gazeX <= rect.right + padding &&
+      gazeY >= rect.top - padding &&
+      gazeY <= rect.bottom + padding;
+
+    if (isOver) {
+      setIsSpeakGazeHover(true);
+      if (speakHoverStart.current === null) {
+        speakHoverStart.current = Date.now();
+        speakDwellTriggered.current = false;
+      } else {
+        const elapsed = Date.now() - speakHoverStart.current;
+        if (elapsed >= 1000 && !speakDwellTriggered.current && onSpeakClick) {
+          speakDwellTriggered.current = true;
+          onSpeakClick();
+        }
+      }
+    } else {
+      setIsSpeakGazeHover(false);
+      speakHoverStart.current = null;
+      speakDwellTriggered.current = false;
+    }
+  }, [gazeX, gazeY, onSpeakClick]);
+
+  // Check gaze hover for telegram button
+  useEffect(() => {
+    if (!telegramRef.current) return;
+
+    const padding = 20;
+    const rect = telegramRef.current.getBoundingClientRect();
+    const isOver =
+      gazeX >= rect.left - padding &&
+      gazeX <= rect.right + padding &&
+      gazeY >= rect.top - padding &&
+      gazeY <= rect.bottom + padding;
+
+    if (isOver) {
+      setIsTelegramGazeHover(true);
+      if (telegramHoverStart.current === null) {
+        telegramHoverStart.current = Date.now();
+        telegramDwellTriggered.current = false;
+      } else {
+        const elapsed = Date.now() - telegramHoverStart.current;
+        if (elapsed >= 1000 && !telegramDwellTriggered.current && onTelegramClick) {
+          telegramDwellTriggered.current = true;
+          onTelegramClick();
+        }
+      }
+    } else {
+      setIsTelegramGazeHover(false);
+      telegramHoverStart.current = null;
+      telegramDwellTriggered.current = false;
+    }
+  }, [gazeX, gazeY, onTelegramClick]);
 
   return (
     <div className="w-full bg-white rounded-[20px] p-5 border border-[#e5e7eb] shadow-sm">
@@ -28,8 +105,11 @@ export default function MessageInput({
 
         <div className="flex items-center gap-2">
           <button
+            ref={speakRef}
             onClick={onSpeakClick}
-            className="w-[40px] h-[40px] flex items-center justify-center rounded-[10px] hover:opacity-90 transition-opacity"
+            className={`w-[40px] h-[40px] flex items-center justify-center rounded-[10px] btn-hover-icon ${
+              isSpeakGazeHover ? "scale-110 shadow-[0_4px_20px_rgba(11,31,183,0.5)]" : ""
+            }`}
             style={{
               background: "linear-gradient(180deg, #354BF3 0%, #0B1FB7 100%)"
             }}
@@ -44,8 +124,11 @@ export default function MessageInput({
           </button>
 
           <button
+            ref={telegramRef}
             onClick={onTelegramClick}
-            className="w-[40px] h-[40px] flex items-center justify-center rounded-[10px] hover:opacity-90 transition-opacity"
+            className={`w-[40px] h-[40px] flex items-center justify-center rounded-[10px] btn-hover-icon ${
+              isTelegramGazeHover ? "scale-110 shadow-[0_4px_20px_rgba(11,31,183,0.5)]" : ""
+            }`}
             style={{
               background: "linear-gradient(180deg, #354BF3 0%, #0B1FB7 100%)"
             }}

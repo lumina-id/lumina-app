@@ -177,7 +177,7 @@ export default function OnboardingPage() {
 
           <div className="flex gap-[8px] items-center">
             <LanguageSwitcher locale={locale} onLocaleChange={setLocale} />
-            <button className="border border-[#ddd] px-[16px] py-[10px] rounded-[12px] text-[16px] text-black tracking-[-0.8px] leading-none hover:bg-gray-50 transition-colors">
+            <button className="border border-[#ddd] px-[16px] py-[10px] rounded-[12px] text-[16px] text-black tracking-[-0.8px] leading-none btn-hover-secondary">
               {t.common.logout}
             </button>
           </div>
@@ -268,7 +268,7 @@ export default function OnboardingPage() {
               <button
                 ref={buttonRef}
                 onClick={() => setCurrentStep(3)}
-                className={`relative px-[32px] py-[16px] rounded-[12px] text-white text-[16px] font-medium tracking-[-0.64px] transition-all duration-300 hover:opacity-90 ${
+                className={`relative px-[32px] py-[16px] rounded-[12px] text-white text-[16px] font-medium tracking-[-0.64px] btn-hover-primary ${
                   isHovering
                     ? "shadow-[0_0_30px_rgba(11,31,183,0.6)] scale-105"
                     : ""
@@ -307,7 +307,7 @@ export default function OnboardingPage() {
             <button
               ref={startButtonRef}
               onClick={handleComplete}
-              className={`px-[32px] py-[14px] rounded-[12px] text-white text-[16px] font-medium tracking-[-0.64px] transition-all duration-300 ${
+              className={`px-[32px] py-[14px] rounded-[12px] text-white text-[16px] font-medium tracking-[-0.64px] btn-hover-primary ${
                 isStep3Hovering
                   ? "shadow-[0_0_30px_rgba(11,31,183,0.6)] scale-105"
                   : ""
