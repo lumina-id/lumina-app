@@ -1,4 +1,6 @@
-import { useState } from "react";
+"use client";
+import { useGaze } from "@/context/GazeContext";
+import { useEffect, useRef, useState } from "react";
 
 interface VirtualKeyboardProps {
   onKeyPress: (key: string) => void;
@@ -27,6 +29,9 @@ const MOBILE_ROWS = [
   ["0", ".", "SPACE", ",", "?", "BACKSPACE"],
 ];
 
+// Flatten all keys for indexing
+const ALL_KEYS = [...DESKTOP_ROWS.flat(), "SPACE_DESKTOP"];
+
 export default function VirtualKeyboard({
   onKeyPress,
   onSpace,
@@ -35,6 +40,33 @@ export default function VirtualKeyboard({
   texts,
 }: VirtualKeyboardProps) {
   const [activeKey, setActiveKey] = useState<string | null>(null);
+  const { gazeX, gazeY } = useGaze();
+  const keyRefs = useRef<Map<string, HTMLButtonElement | null>>(new Map());
+  const [gazeHoverKey, setGazeHoverKey] = useState<string | null>(null);
+
+  // Check gaze hover for all keys - visual feedback only
+  // Actual click is handled by blink detection in useFaceMesh
+  useEffect(() => {
+    const padding = 10;
+    let foundKey: string | null = null;
+
+    keyRefs.current.forEach((el, key) => {
+      if (!el) return;
+
+      const rect = el.getBoundingClientRect();
+      const isOver =
+        gazeX >= rect.left - padding &&
+        gazeX <= rect.right + padding &&
+        gazeY >= rect.top - padding &&
+        gazeY <= rect.bottom + padding;
+
+      if (isOver) {
+        foundKey = key;
+      }
+    });
+
+    setGazeHoverKey(foundKey);
+  }, [gazeX, gazeY]);
 
   const handleKeyClick = (key: string) => {
     // Visual Feedback
@@ -43,35 +75,49 @@ export default function VirtualKeyboard({
 
     if (key === "BACKSPACE") {
       onBackspace();
-    } else if (key === "SPACE") {
+    } else if (key === "SPACE" || key === "SPACE_DESKTOP") {
       onSpace();
     } else {
       onKeyPress(key);
     }
   };
 
+  const setKeyRef =
+    (key: string, isMobile: boolean = false) =>
+    (el: HTMLButtonElement | null) => {
+      // Use prefix to differentiate desktop vs mobile keys
+      const refKey = isMobile ? `M_${key}` : `D_${key}`;
+      keyRefs.current.set(refKey, el);
+    };
+
   const renderKey = (key: string, isMobile: boolean = false) => {
     const isBackspace = key === "BACKSPACE";
     const isSpace = key === "SPACE";
     const isActive = activeKey === key;
+    const refKey = isMobile ? `M_${key}` : `D_${key}`;
+    const isGazeHover = gazeHoverKey === refKey;
 
     // Active Style: Green Outline #33FF7E
-    const activeStyle = isActive 
-      ? "border-[3px] border-[#33FF7E] shadow-[0_0_15px_rgba(51,255,126,0.5)] bg-white transform scale-105 z-10" 
-      : "bg-[#f1f5f9] hover:bg-[#e2e8f0] border border-transparent";
+    // Gaze Hover Style: Blue glow
+    const activeStyle = isActive
+      ? "border-[3px] border-[#33FF7E] shadow-[0_0_15px_rgba(51,255,126,0.5)] bg-white transform scale-105 z-10"
+      : isGazeHover
+      ? "border-[2px] border-[#354BF3] shadow-[0_0_12px_rgba(53,75,243,0.4)] bg-[#eef2ff] transform scale-105 z-10"
+      : "bg-[#f1f5f9] border border-transparent btn-hover-key";
 
     if (isBackspace) {
       return (
         <button
           key={key}
+          ref={setKeyRef(key, isMobile)}
           onClick={() => handleKeyClick(key)}
           className={`flex items-center justify-center rounded-[12px] transition-all shadow-sm ${activeStyle} ${
-            isMobile ? "w-[48px] h-[48px]" : "w-[60px] h-[56px]"
+            isMobile ? "w-[40px] h-[44px]" : "w-[60px] h-[56px]"
           }`}
         >
           <svg
-            width={isMobile ? "20" : "24"}
-            height={isMobile ? "20" : "24"}
+            width={isMobile ? "18" : "24"}
+            height={isMobile ? "18" : "24"}
             viewBox="0 0 24 24"
             fill="none"
             xmlns="http://www.w3.org/2000/svg"
@@ -99,8 +145,9 @@ export default function VirtualKeyboard({
       return (
         <button
           key={key}
+          ref={setKeyRef(key, isMobile)}
           onClick={() => handleKeyClick(key)}
-          className={`w-[100px] h-[48px] flex items-center justify-center rounded-[12px] transition-all shadow-sm text-[16px] font-medium text-[#202020] ${activeStyle}`}
+          className={`w-[88px] h-[44px] flex items-center justify-center rounded-[12px] transition-all shadow-sm text-[16px] font-medium text-[#202020] ${activeStyle}`}
         >
           {texts.space}
         </button>
@@ -110,15 +157,19 @@ export default function VirtualKeyboard({
     return (
       <button
         key={key}
+        ref={setKeyRef(key, isMobile)}
         onClick={() => handleKeyClick(key)}
-        className={`flex items-center justify-center rounded-[12px] transition-all shadow-sm text-[18px] font-medium text-[#202020] ${activeStyle} ${
-          isMobile ? "w-[48px] h-[48px]" : "w-[60px] h-[56px]"
+        className={`flex items-center justify-center rounded-[12px] transition-all shadow-sm font-medium text-[#202020] ${activeStyle} ${
+          isMobile ? "w-[40px] h-[44px] text-[16px]" : "w-[60px] h-[56px] text-[18px]"
         }`}
       >
         {key}
       </button>
     );
   };
+
+  const isSpaceGazeHover = gazeHoverKey === "D_SPACE_DESKTOP";
+  const isSpaceActive = activeKey === "SPACE" || activeKey === "SPACE_DESKTOP";
 
   return (
     <div className="w-full flex flex-col items-center gap-3">
@@ -131,11 +182,14 @@ export default function VirtualKeyboard({
         ))}
 
         <button
-          onClick={() => handleKeyClick("SPACE")}
-          className={`w-[280px] h-[52px] flex items-center justify-center rounded-full transition-all shadow-sm text-[18px] font-medium text-[#202020] mt-2 ${
-             activeKey === "SPACE" 
-             ? "border-[3px] border-[#33FF7E] shadow-[0_0_15px_rgba(51,255,126,0.5)] bg-white transform scale-105 z-10" 
-             : "bg-[#f1f5f9] hover:bg-[#e2e8f0] border border-transparent"
+          ref={setKeyRef("SPACE_DESKTOP", false)}
+          onClick={() => handleKeyClick("SPACE_DESKTOP")}
+          className={`w-[280px] h-[52px] flex items-center justify-center rounded-full shadow-sm text-[18px] font-medium text-[#202020] mt-2 transition-all ${
+            isSpaceActive
+              ? "border-[3px] border-[#33FF7E] shadow-[0_0_15px_rgba(51,255,126,0.5)] bg-white transform scale-105 z-10"
+              : isSpaceGazeHover
+              ? "border-[2px] border-[#354BF3] shadow-[0_0_12px_rgba(53,75,243,0.4)] bg-[#eef2ff] transform scale-105 z-10"
+              : "bg-[#f1f5f9] border border-transparent btn-hover-key"
           }`}
         >
           {texts.space}
@@ -143,17 +197,22 @@ export default function VirtualKeyboard({
       </div>
 
       {/* Mobile Layout */}
-      <div className="flex md:hidden flex-col items-center gap-2">
+      <div className="flex md:hidden flex-col items-center gap-1">
         {MOBILE_ROWS.map((row, rowIndex) => (
-          <div key={rowIndex} className="flex gap-2 justify-center">
+          <div key={rowIndex} className="flex gap-1 justify-center">
             {row.map((key) => renderKey(key, true))}
           </div>
         ))}
       </div>
 
       <button
+        ref={setKeyRef("CLEAR", false)}
         onClick={onClear}
-        className="flex items-center gap-2 text-[14px] text-[#ef4444] hover:text-[#dc2626] transition-colors mt-3"
+        className={`flex items-center justify-center gap-2 px-[20px] py-[12px] rounded-[12px] text-[14px] font-medium shadow-sm mt-3 transition-all duration-200 cursor-pointer ${
+          gazeHoverKey === "D_CLEAR"
+            ? "bg-[#fee2e2] border-[2px] border-[#f87171] shadow-[0_0_12px_rgba(248,113,113,0.4)] transform scale-105 text-[#991b1b]"
+            : "bg-[#fef2f2] border border-[#fecaca] text-[#b91c1c] hover:bg-[#fee2e2] hover:scale-102 hover:shadow-md"
+        }`}
       >
         <svg
           width="18"

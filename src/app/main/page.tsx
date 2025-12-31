@@ -1,4 +1,5 @@
 "use client";
+import GazeCursor from "@/components/gaze/GazeCursor";
 import HeardCard from "@/components/main/HeardCard";
 import MessageInput from "@/components/main/MessageInput";
 import SuggestedResponses from "@/components/main/SuggestedResponses";
@@ -7,9 +8,8 @@ import VirtualKeyboard from "@/components/main/VirtualKeyboard";
 import Header from "@/components/ui/Header";
 import { useLanguage } from "@/context/LanguageContext";
 import { useMessageComposer } from "@/hooks/main/useMessageComposer";
-import { useState, useRef, useEffect } from "react";
 import { useFaceMesh } from "@/hooks/useFaceMesh";
-import GazeCursor from "@/components/gaze/GazeCursor";
+import { useEffect, useRef, useState } from "react";
 
 export default function MainPage() {
   const { t, locale } = useLanguage();
@@ -22,7 +22,9 @@ export default function MainPage() {
   useEffect(() => {
     const startWebcam = async () => {
       try {
-        const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+        const stream = await navigator.mediaDevices.getUserMedia({
+          video: true,
+        });
         if (videoRef.current) {
           videoRef.current.srcObject = stream;
         }
@@ -53,6 +55,7 @@ export default function MainPage() {
 
   const [isTelegramOpen, setIsTelegramOpen] = useState(false);
   const [suggestions, setSuggestions] = useState<string[]>([]);
+  const [isLoadingSuggestions, setIsLoadingSuggestions] = useState(false);
   const [isSpeaking, setIsSpeaking] = useState(false);
   const [ttsCooldown, setTtsCooldown] = useState(false);
   const lastFetchedContext = useRef<string>("");
@@ -67,17 +70,18 @@ export default function MainPage() {
         fetchSuggestions(message);
         lastFetchedContext.current = message;
       }
-    }, 3000); // 3 second debounce
+    }, 1000); // 1 second debounce
 
     return () => clearTimeout(timer);
   }, [message]);
 
   const fetchSuggestions = async (context: string) => {
     console.log("Frontend fetching suggestions for:", context);
+    setIsLoadingSuggestions(true);
     try {
-      const res = await fetch('/api/suggestions', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+      const res = await fetch("/api/suggestions", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ context, lang: locale }),
       });
       const data = await res.json();
@@ -86,6 +90,8 @@ export default function MainPage() {
       }
     } catch (error) {
       console.error("Failed to fetch suggestions", error);
+    } finally {
+      setIsLoadingSuggestions(false);
     }
   };
 
@@ -111,9 +117,9 @@ export default function MainPage() {
         return;
       }
 
-      const res = await fetch('/api/tts', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+      const res = await fetch("/api/tts", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ text: message, lang: locale }),
       });
       const data = await res.json();
@@ -150,6 +156,17 @@ export default function MainPage() {
     clearMessage();
   };
 
+  const handleLogout = () => {
+    // Cleanup if needed
+    clearMessage();
+    if (videoRef.current && videoRef.current.srcObject) {
+      const stream = videoRef.current.srcObject as MediaStream;
+      stream.getTracks().forEach((track) => track.stop());
+    }
+    // Redirect to login (root)
+    window.location.href = "/";
+  };
+
   return (
     <div className="bg-white min-h-screen flex flex-col">
       <GazeCursor />
@@ -162,7 +179,7 @@ export default function MainPage() {
         className="fixed top-0 left-0 w-1 h-1 opacity-0 pointer-events-none"
       />
 
-      <Header />
+      <Header onLogout={handleLogout} />
 
       <main className="flex-1 flex flex-col items-center px-4 py-8 pb-20">
         <div className="w-full max-w-[700px] flex flex-col gap-6">
@@ -187,14 +204,19 @@ export default function MainPage() {
           />
 
           <SuggestedResponses
-            responses={suggestions.length > 0 ? suggestions : [
-              t.main.suggestions.option1,
-              t.main.suggestions.option2,
-              t.main.suggestions.option3,
-              t.main.suggestions.option4,
-            ]}
+            responses={
+              suggestions.length > 0
+                ? suggestions
+                : [
+                    t.main.suggestions.option1,
+                    t.main.suggestions.option2,
+                    t.main.suggestions.option3,
+                    t.main.suggestions.option4,
+                  ]
+            }
             selectedIndex={selectedSuggestionIndex}
             onSelect={selectSuggestion}
+            isLoading={isLoadingSuggestions}
           />
 
           <p className="text-[14px] text-[#94a3b8] text-center tracking-[-0.56px]">
