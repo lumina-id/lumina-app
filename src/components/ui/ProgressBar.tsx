@@ -5,7 +5,7 @@ interface ProgressBarProps {
 
 export default function ProgressBar({ currentStep, totalSteps }: ProgressBarProps) {
   return (
-    <div className="w-[400px] flex gap-[8px] h-[6px]">
+    <div className="w-[280px] md:w-[400px] flex gap-[8px] h-[6px]">
       {Array.from({ length: totalSteps }, (_, index) => {
         const stepNumber = index + 1;
         const isCompleted = stepNumber < currentStep;
@@ -25,3 +25,5 @@ export default function ProgressBar({ currentStep, totalSteps }: ProgressBarProp
     </div>
   );
 }
+
+
