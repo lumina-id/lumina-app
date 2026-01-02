@@ -9,6 +9,7 @@ import Header from "@/components/ui/Header";
 import { useLanguage } from "@/context/LanguageContext";
 import { useMessageComposer } from "@/hooks/main/useMessageComposer";
 import { useFaceMesh } from "@/hooks/useFaceMesh";
+import { useAzureSTT } from "@/hooks/useAzureSTT";
 import { useEffect, useRef, useState } from "react";
 
 export default function MainPage() {
@@ -24,6 +25,7 @@ export default function MainPage() {
       try {
         const stream = await navigator.mediaDevices.getUserMedia({
           video: true,
+          // video: { facingMode: "user" }, // Optional: Ensure front camera
         });
         if (videoRef.current) {
           videoRef.current.srcObject = stream;
@@ -46,6 +48,7 @@ export default function MainPage() {
   const {
     message,
     appendChar,
+    appendText,
     addSpace,
     backspace,
     clearMessage,
@@ -59,6 +62,18 @@ export default function MainPage() {
   const [isSpeaking, setIsSpeaking] = useState(false);
   const [ttsCooldown, setTtsCooldown] = useState(false);
   const lastFetchedContext = useRef<string>("");
+
+  // Azure STT Hook
+  const {
+    isListening,
+    startListening,
+    stopListening,
+    interimTranscript,
+    transcript,
+  } = useAzureSTT({
+    language: locale === "id" ? "id-ID" : "en-US",
+    // Text only appears in HeardCard, not in keyboard input
+  });
 
   // Debounce fetching suggestions - 3 seconds after user stops typing
   useEffect(() => {
@@ -159,6 +174,7 @@ export default function MainPage() {
   const handleLogout = () => {
     // Cleanup if needed
     clearMessage();
+    stopListening(); // Stop STT if running
     if (videoRef.current && videoRef.current.srcObject) {
       const stream = videoRef.current.srcObject as MediaStream;
       stream.getTracks().forEach((track) => track.stop());
@@ -193,7 +209,8 @@ export default function MainPage() {
               listening: t.main.heardCard.listening,
               defaultText: t.main.heardCard.defaultText,
             }}
-            isListening={false}
+            isListening={isListening}
+            heardText={transcript || interimTranscript}
           />
 
           <MessageInput
@@ -201,6 +218,8 @@ export default function MainPage() {
             placeholder={t.main.messageInput.placeholder}
             onSpeakClick={handleSend}
             onTelegramClick={handleTelegramClick}
+            onMicClick={isListening ? stopListening : startListening}
+            isListening={isListening}
           />
 
           <SuggestedResponses
@@ -208,11 +227,11 @@ export default function MainPage() {
               suggestions.length > 0
                 ? suggestions
                 : [
-                    t.main.suggestions.option1,
-                    t.main.suggestions.option2,
-                    t.main.suggestions.option3,
-                    t.main.suggestions.option4,
-                  ]
+                  t.main.suggestions.option1,
+                  t.main.suggestions.option2,
+                  t.main.suggestions.option3,
+                  t.main.suggestions.option4,
+                ]
             }
             selectedIndex={selectedSuggestionIndex}
             onSelect={selectSuggestion}

@@ -5,6 +5,7 @@ interface UseMessageComposerReturn {
   message: string;
   setMessage: (message: string) => void;
   appendChar: (char: string) => void;
+  appendText: (text: string) => void;
   addSpace: () => void;
   backspace: () => void;
   clearMessage: () => void;
@@ -36,6 +37,15 @@ export const useMessageComposer = (): UseMessageComposerReturn => {
     setSelectedSuggestionIndex(null);
   }, []);
 
+  const appendText = useCallback((text: string) => {
+    setMessageState((prev) => {
+      // Auto-add space if needed
+      const needsSpace = prev.length > 0 && !/[\s]$/.test(prev);
+      return prev + (needsSpace ? " " : "") + text;
+    });
+    setSelectedSuggestionIndex(null);
+  }, []);
+
   const backspace = useCallback(() => {
     setMessageState((prev) => prev.slice(0, -1));
     setSelectedSuggestionIndex(null);
@@ -55,6 +65,7 @@ export const useMessageComposer = (): UseMessageComposerReturn => {
     message,
     setMessage,
     appendChar,
+    appendText,
     addSpace,
     backspace,
     clearMessage,
