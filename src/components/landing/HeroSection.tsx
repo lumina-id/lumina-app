@@ -34,7 +34,33 @@ export default function HeroSection() {
       <div className="relative min-h-[calc(100vh-16px)] rounded-[24px] md:rounded-[32px] overflow-hidden">
         {/* Background Image */}
         <div className="absolute inset-0">
-          <Image src="/assets/bg-hero.png" alt="" fill priority className="object-cover md:object-contain" />
+          <Image
+            src="/assets/bg-hero.png"
+            alt=""
+            fill
+            priority
+            className="object-cover md:object-contain"
+          />
+        </div>
+
+        {/* Comet Effects */}
+        <div className="absolute top-0 right-0 w-[50%] h-full pointer-events-none z-0">
+          <Image
+            src="/assets/large-comet.png"
+            alt=""
+            fill
+            className="object-contain object-right"
+            priority
+          />
+        </div>
+        <div className="absolute top-0 left-0 w-[50%] h-full pointer-events-none z-0">
+          <Image
+            src="/assets/small-comet.png"
+            alt=""
+            fill
+            className="object-contain object-left"
+            priority
+          />
         </div>
 
         {/* Content */}
