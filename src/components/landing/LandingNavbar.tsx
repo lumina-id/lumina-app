@@ -34,7 +34,7 @@ export default function LandingNavbar() {
           </div>
           <span
             className={`text-[20px] md:text-[22px] font-medium tracking-[-0.04em] transition-colors ${
-              isScrolled ? "text-white" : "text-white"
+              isScrolled ? "text-white" : "text-white lg:text-black"
             }`}
           >
             Lumina
