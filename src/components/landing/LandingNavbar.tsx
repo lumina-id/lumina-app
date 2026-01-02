@@ -34,8 +34,8 @@ export default function LandingNavbar() {
               className="object-contain"
             />
           </div>
-          <span className={`text-[20px] md:text-[24px] font-medium tracking-[-0.5px] transition-colors ${
-            isScrolled ? "text-white" : "text-white"
+          <span className={`text-[20px] md:text-[22px] font-medium tracking-[-0.04em] transition-colors ${
+            isScrolled ? "text-white" : "text-white md:text-black"
           }`}>
             Lumina
           </span>
@@ -45,7 +45,7 @@ export default function LandingNavbar() {
         <div className="hidden md:flex items-center gap-8">
           <Link
             href="/"
-            className={`text-[16px] transition-colors ${
+            className={`text-[16px] tracking-[-0.04em] transition-colors ${
               isScrolled ? "text-white/90 hover:text-white" : "text-white/90 hover:text-white"
             }`}
           >
@@ -53,7 +53,7 @@ export default function LandingNavbar() {
           </Link>
           <Link
             href="#about"
-            className={`text-[16px] transition-colors ${
+            className={`text-[16px] tracking-[-0.04em] transition-colors ${
               isScrolled ? "text-white/90 hover:text-white" : "text-white/90 hover:text-white"
             }`}
           >
@@ -61,7 +61,7 @@ export default function LandingNavbar() {
           </Link>
           <Link
             href="#features"
-            className={`text-[16px] transition-colors ${
+            className={`text-[16px] tracking-[-0.04em] transition-colors ${
               isScrolled ? "text-white/90 hover:text-white" : "text-white/90 hover:text-white"
             }`}
           >
@@ -72,8 +72,10 @@ export default function LandingNavbar() {
         {/* Sign in Button */}
         <Link
           href="/login"
-          style={{ backgroundColor: "#081787" }}
-          className="px-5 py-2.5 rounded-[10px] text-[14px] md:text-[16px] font-medium text-white hover:opacity-90 transition-opacity"
+          className="px-5 py-2 rounded-[10px] text-[14px] md:text-[16px] font-medium tracking-[-0.04em] text-white hover:opacity-90 transition-opacity"
+          style={{
+            background: "linear-gradient(90deg, #4357BC 0%, #6B87C7 100%)",
+          }}
         >
           Sign in
         </Link>
