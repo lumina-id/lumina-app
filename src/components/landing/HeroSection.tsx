@@ -28,65 +28,14 @@ export default function HeroSection() {
     },
   };
 
-  const glowVariants = {
-    hidden: { opacity: 0, scale: 0.8 },
-    visible: {
-      opacity: 1,
-      scale: 1,
-      transition: {
-        duration: 1.5,
-        ease: [0.25, 0.46, 0.45, 0.94] as const,
-      },
-    },
-  };
-
   return (
     <section className="bg-white pt-1 pb-0 px-4 md:px-6">
       {/* Hero Card Container with rounded corners */}
       <div className="relative min-h-[calc(100vh-16px)] rounded-[24px] md:rounded-[32px] overflow-hidden">
         {/* Background Image */}
         <div className="absolute inset-0">
-          <Image
-            src="/assets/bg-hero.png"
-            alt=""
-            fill
-            className="object-cover"
-            priority
-          />
+          <Image src="/assets/bg-hero.png" alt="" fill priority className="object-cover md:object-contain" />
         </div>
-
-        {/* Glow Effect Overlay */}
-        <motion.div
-          className="absolute inset-0 pointer-events-none"
-          variants={glowVariants}
-          initial="hidden"
-          animate="visible"
-        >
-          {/* Top right glow */}
-          <div
-            className="absolute top-0 right-0 w-[60%] h-[70%]"
-            style={{
-              background:
-                "radial-gradient(ellipse at 80% 20%, rgba(120, 140, 200, 0.3) 0%, rgba(120, 140, 200, 0.1) 40%, transparent 70%)",
-            }}
-          />
-          {/* Bottom right subtle glow */}
-          <div
-            className="absolute bottom-0 right-0 w-[50%] h-[50%]"
-            style={{
-              background:
-                "radial-gradient(ellipse at 90% 90%, rgba(180, 190, 220, 0.2) 0%, transparent 60%)",
-            }}
-          />
-          {/* Center glow for depth */}
-          <div
-            className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[80%] h-[80%]"
-            style={{
-              background:
-                "radial-gradient(ellipse at center, rgba(100, 120, 180, 0.05) 0%, transparent 50%)",
-            }}
-          />
-        </motion.div>
 
         {/* Content */}
         <motion.div
@@ -166,13 +115,27 @@ export default function HeroSection() {
                   fontFamily: "Satoshi, sans-serif",
                   fontSize: "clamp(14px, 3vw, 20px)",
                   letterSpacing: "-0.04em",
-                  background: "linear-gradient(90deg, #4357BC 0%, #6B87C7 100%)",
+                  background:
+                    "linear-gradient(90deg, #4357BC 0%, #6B87C7 100%)",
                 }}
               >
                 <span>Get Started</span>
                 <div className="relative w-5 h-5 md:w-7 md:h-7 flex items-center justify-center bg-white rounded-full transition-transform duration-300 group-hover:scale-110">
-                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" className="md:w-4 md:h-4">
-                    <path d="M7 17L17 7M17 7H7M17 7V17" stroke="#4357BC" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
+                  <svg
+                    width="12"
+                    height="12"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    xmlns="http://www.w3.org/2000/svg"
+                    className="md:w-4 md:h-4"
+                  >
+                    <path
+                      d="M7 17L17 7M17 7H7M17 7V17"
+                      stroke="#4357BC"
+                      strokeWidth="2.5"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
                   </svg>
                 </div>
               </Link>
