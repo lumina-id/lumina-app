@@ -1,7 +1,45 @@
+"use client";
+
+import { motion } from "framer-motion";
 import Image from "next/image";
 import Link from "next/link";
 
 export default function HeroSection() {
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: {
+      opacity: 1,
+      transition: {
+        staggerChildren: 0.15,
+        delayChildren: 0.2,
+      },
+    },
+  };
+
+  const itemVariants = {
+    hidden: { opacity: 0, y: 30 },
+    visible: {
+      opacity: 1,
+      y: 0,
+      transition: {
+        duration: 0.8,
+        ease: [0.25, 0.46, 0.45, 0.94] as const,
+      },
+    },
+  };
+
+  const glowVariants = {
+    hidden: { opacity: 0, scale: 0.8 },
+    visible: {
+      opacity: 1,
+      scale: 1,
+      transition: {
+        duration: 1.5,
+        ease: [0.25, 0.46, 0.45, 0.94] as const,
+      },
+    },
+  };
+
   return (
     <section className="bg-white pt-1 pb-0 px-4 md:px-6">
       {/* Hero Card Container with rounded corners */}
@@ -17,30 +55,88 @@ export default function HeroSection() {
           />
         </div>
 
+        {/* Glow Effect Overlay */}
+        <motion.div
+          className="absolute inset-0 pointer-events-none"
+          variants={glowVariants}
+          initial="hidden"
+          animate="visible"
+        >
+          {/* Top right glow */}
+          <div
+            className="absolute top-0 right-0 w-[60%] h-[70%]"
+            style={{
+              background:
+                "radial-gradient(ellipse at 80% 20%, rgba(120, 140, 200, 0.3) 0%, rgba(120, 140, 200, 0.1) 40%, transparent 70%)",
+            }}
+          />
+          {/* Bottom right subtle glow */}
+          <div
+            className="absolute bottom-0 right-0 w-[50%] h-[50%]"
+            style={{
+              background:
+                "radial-gradient(ellipse at 90% 90%, rgba(180, 190, 220, 0.2) 0%, transparent 60%)",
+            }}
+          />
+          {/* Center glow for depth */}
+          <div
+            className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[80%] h-[80%]"
+            style={{
+              background:
+                "radial-gradient(ellipse at center, rgba(100, 120, 180, 0.05) 0%, transparent 50%)",
+            }}
+          />
+        </motion.div>
+
         {/* Content */}
-        <div className="relative z-10 w-full max-w-[1400px] mx-auto px-6 md:px-12 lg:px-20 pt-32 md:pt-40 pb-32">
-          <div className="max-w-[700px]">
+        <motion.div
+          className="relative z-10 w-full max-w-[1400px] mx-auto px-6 md:px-12 lg:px-20 pt-32 md:pt-40 pb-32"
+          variants={containerVariants}
+          initial="hidden"
+          animate="visible"
+        >
+          <div className="max-w-[900px]">
             {/* Badge */}
-            <div
-              className="inline-block px-4 py-2 rounded-full mb-6"
+            <motion.div
+              className="inline-block px-6 py-3 rounded-full mb-6"
               style={{
-                backgroundColor: "rgba(99, 102, 241, 0.2)",
+                background: "rgba(255,255,255,0.08)",
+                border: "1px solid rgba(167,176,230,0.4)",
+                backdropFilter: "blur(10px)",
               }}
+              variants={itemVariants}
             >
-              <span className="text-[13px] md:text-[14px] text-[#ff7b5f] font-medium">
+              <span
+                className="text-[16px] md:text-[20px] tracking-[-0.04em] font-light"
+                style={{
+                  background:
+                    "linear-gradient(90deg, #CFD4FC 50%, #6F7EF6 100%)",
+                  WebkitBackgroundClip: "text",
+                  WebkitTextFillColor: "transparent",
+                  backgroundClip: "text",
+                }}
+              >
                 AI-powered assistive communication
               </span>
-            </div>
+            </motion.div>
 
             {/* Title */}
-            <h1 className="text-[32px] md:text-[48px] lg:text-[56px] font-semibold text-white leading-[1.1] tracking-[-1px] mb-6">
-              When Words are Hard to Say,
-              <br />
-              <span className="inline-flex items-center gap-3">
+            <motion.h1
+              className="text-[32px] md:text-[48px] lg:text-[56px] font-semibold leading-[1.15] tracking-[-1px] mb-6"
+              style={{
+                background: "linear-gradient(90deg, #F4E7FF 0%, #5C5A68 100%)",
+                WebkitBackgroundClip: "text",
+                WebkitTextFillColor: "transparent",
+                backgroundClip: "text",
+              }}
+              variants={itemVariants}
+            >
+              When Words are Hard to Say,{" "}
+              <span className="inline-flex items-center gap-2 whitespace-nowrap">
                 Lumina
-                <span className="relative w-[40px] h-[40px] md:w-[56px] md:h-[56px] inline-block">
+                <span className="relative w-[36px] h-[36px] md:w-[48px] md:h-[48px] inline-block align-middle">
                   <Image
-                    src="/assets/lumina-icon.svg"
+                    src="/assets/Icon.png"
                     alt="Lumina"
                     fill
                     className="object-contain"
@@ -48,43 +144,41 @@ export default function HeroSection() {
                 </span>
               </span>{" "}
               Helps You Respond
-            </h1>
+            </motion.h1>
 
             {/* Description */}
-            <p className="text-[16px] md:text-[18px] text-white/70 leading-relaxed mb-8 max-w-[600px]">
+            <motion.p
+              className="text-[18px] md:text-[24px] leading-[120%] tracking-[-0.04em] mb-8 max-w-[850px]"
+              style={{ color: "#EAEAEA" }}
+              variants={itemVariants}
+            >
               Platform that helps people with limited motor or speech abilities
               communicate, locally or remotely, using eye-based interaction and
               intelligent responses
-            </p>
+            </motion.p>
 
             {/* CTA Button */}
-            <Link
-              href="/login"
-              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full text-[14px] md:text-[15px] font-medium text-white transition-all hover:scale-105"
-              style={{
-                backgroundColor: "#1e2a5e",
-                border: "1px solid rgba(255,255,255,0.15)",
-              }}
-            >
-              Get Started
-              <svg
-                width="16"
-                height="16"
-                viewBox="0 0 24 24"
-                fill="none"
-                xmlns="http://www.w3.org/2000/svg"
+            <motion.div variants={itemVariants}>
+              <Link
+                href="/login"
+                className="group relative inline-flex items-center gap-2 md:gap-3 pl-4 md:pl-6 pr-2 md:pr-4 py-2 md:py-3 rounded-full md:rounded-[16px] text-white font-medium transition-all duration-300 hover:shadow-[0_8px_30px_rgba(67,87,188,0.4)] hover:translate-y-[-2px]"
+                style={{
+                  fontFamily: "Satoshi, sans-serif",
+                  fontSize: "clamp(14px, 3vw, 20px)",
+                  letterSpacing: "-0.04em",
+                  background: "linear-gradient(90deg, #4357BC 0%, #6B87C7 100%)",
+                }}
               >
-                <path
-                  d="M5 12H19M19 12L12 5M19 12L12 19"
-                  stroke="white"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-              </svg>
-            </Link>
+                <span>Get Started</span>
+                <div className="relative w-5 h-5 md:w-7 md:h-7 flex items-center justify-center bg-white rounded-full transition-transform duration-300 group-hover:scale-110">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" className="md:w-4 md:h-4">
+                    <path d="M7 17L17 7M17 7H7M17 7V17" stroke="#4357BC" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
+                  </svg>
+                </div>
+              </Link>
+            </motion.div>
           </div>
-        </div>
+        </motion.div>
       </div>
     </section>
   );
