@@ -1,7 +1,7 @@
 "use client";
 import Image from "next/image";
 import Link from "next/link";
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 
 export default function LandingNavbar() {
   const [isScrolled, setIsScrolled] = useState(false);
@@ -16,11 +16,9 @@ export default function LandingNavbar() {
   }, []);
 
   return (
-    <nav 
+    <nav
       className={`fixed top-0 left-0 right-0 z-50 px-4 md:px-8 lg:px-16 py-4 transition-all duration-300 ${
-        isScrolled 
-          ? "bg-[#0a0e27]/95 backdrop-blur-md shadow-lg" 
-          : ""
+        isScrolled ? "bg-[#0a0e27]/95 backdrop-blur-md shadow-lg" : ""
       }`}
     >
       <div className="max-w-[1400px] mx-auto flex items-center justify-between">
@@ -34,9 +32,11 @@ export default function LandingNavbar() {
               className="object-contain"
             />
           </div>
-          <span className={`text-[20px] md:text-[22px] font-medium tracking-[-0.04em] transition-colors ${
-            isScrolled ? "text-white" : "text-white md:text-black"
-          }`}>
+          <span
+            className={`text-[20px] md:text-[22px] font-medium tracking-[-0.04em] transition-colors ${
+              isScrolled ? "text-white" : "text-white"
+            }`}
+          >
             Lumina
           </span>
         </Link>
@@ -46,7 +46,9 @@ export default function LandingNavbar() {
           <Link
             href="/"
             className={`text-[16px] tracking-[-0.04em] transition-colors ${
-              isScrolled ? "text-white/90 hover:text-white" : "text-white/90 hover:text-white"
+              isScrolled
+                ? "text-white/90 hover:text-white"
+                : "text-white/90 hover:text-white"
             }`}
           >
             Home
@@ -54,7 +56,9 @@ export default function LandingNavbar() {
           <Link
             href="#about"
             className={`text-[16px] tracking-[-0.04em] transition-colors ${
-              isScrolled ? "text-white/90 hover:text-white" : "text-white/90 hover:text-white"
+              isScrolled
+                ? "text-white/90 hover:text-white"
+                : "text-white/90 hover:text-white"
             }`}
           >
             About
@@ -62,7 +66,9 @@ export default function LandingNavbar() {
           <Link
             href="#features"
             className={`text-[16px] tracking-[-0.04em] transition-colors ${
-              isScrolled ? "text-white/90 hover:text-white" : "text-white/90 hover:text-white"
+              isScrolled
+                ? "text-white/90 hover:text-white"
+                : "text-white/90 hover:text-white"
             }`}
           >
             Features

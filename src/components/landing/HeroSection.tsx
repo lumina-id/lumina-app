@@ -29,7 +29,7 @@ export default function HeroSection() {
   };
 
   return (
-    <section className="bg-white pt-1 pb-0 px-4 md:px-6">
+    <section className="bg-white pt-1 pb-0 px-2 md:px-4">
       {/* Hero Card Container with rounded corners */}
       <div className="relative min-h-[calc(100vh-16px)] rounded-[24px] md:rounded-[32px] overflow-hidden">
         {/* Background Image */}
@@ -39,7 +39,7 @@ export default function HeroSection() {
             alt=""
             fill
             priority
-            className="object-cover md:object-contain"
+            className="object-cover lg:object-contain"
           />
         </div>
 
