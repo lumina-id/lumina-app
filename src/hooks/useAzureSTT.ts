@@ -39,9 +39,13 @@ export function useAzureSTT({ language = "id-ID", onFinalResult }: UseAzureSTTPr
         setInterimTranscript("");
 
         try {
-            // 1. Get Token
-            const response = await fetch("/api/speech-token");
+            // 1. Get Token (with cache-busting)
+            const response = await fetch(`/api/speech-token?t=${Date.now()}`, {
+                cache: 'no-store',
+                headers: { 'Cache-Control': 'no-cache' }
+            });
             const data = await response.json();
+            console.log("[STT] Token response:", { region: data.region, hasToken: !!data.token });
 
             if (!response.ok) {
                 throw new Error(data.error || "Failed to fetch speech token");
@@ -74,12 +78,15 @@ export function useAzureSTT({ language = "id-ID", onFinalResult }: UseAzureSTTPr
 
             // 4. Event Handlers
             recognizer.recognizing = (s, e) => {
+                console.log("[STT] Recognizing:", e.result.text);
                 setInterimTranscript(e.result.text);
             };
 
             recognizer.recognized = (s, e) => {
+                console.log("[STT] Recognized event, reason:", e.result.reason);
                 if (e.result.reason === SpeechSDK.ResultReason.RecognizedSpeech) {
                     const finalText = e.result.text;
+                    console.log("[STT] Final text:", finalText);
                     setTranscript((prev) => prev + (prev ? " " : "") + finalText);
 
                     if (onFinalResult) {
@@ -101,8 +108,10 @@ export function useAzureSTT({ language = "id-ID", onFinalResult }: UseAzureSTTPr
             };
 
             // 5. Start
+            console.log("[STT] Starting continuous recognition...");
             recognizer.startContinuousRecognitionAsync(
                 () => {
+                    console.log("[STT] Recognition started successfully");
                     setIsListening(true);
                 },
                 (err) => {

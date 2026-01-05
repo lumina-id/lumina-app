@@ -1,5 +1,8 @@
 import { NextResponse } from "next/server";
 
+// Prevent Next.js from caching this route - token must be fresh
+export const dynamic = 'force-dynamic';
+
 export async function GET() {
     const speechKey = process.env.AZURE_SPEECH_KEY;
     const speechRegion = process.env.AZURE_SPEECH_REGION;
