@@ -76,7 +76,7 @@ export default function SuggestedResponses({
             buttonRefs.current[index] = el;
           }}
           onClick={() => onSelect(response, index)}
-          className={`relative p-4 rounded-[12px] text-left text-[15px] tracking-[-0.3px] bg-[#f9fafb] border btn-hover-suggestion transition-all duration-200 ${
+          className={`relative p-4 rounded-[12px] text-left text-[15px] tracking-[-0.3px] bg-[#f9fafb] border-2 btn-hover-suggestion transition-all duration-200 ${
             selectedIndex === index
               ? "text-[#111827] border-[#0B1FB7] bg-[#eef2ff]"
               : gazeHoverIndex === index
@@ -84,12 +84,6 @@ export default function SuggestedResponses({
               : "text-[#374151] border-transparent"
           }`}
         >
-          {selectedIndex === index && (
-            <div className="absolute left-0 top-0 bottom-0 w-[4px] bg-[#0B1FB7] rounded-l-[12px]" />
-          )}
-          {gazeHoverIndex === index && selectedIndex !== index && (
-            <div className="absolute left-0 top-0 bottom-0 w-[4px] bg-[#c7d2fe] rounded-l-[12px]" />
-          )}
           <span
             className={
               selectedIndex === index || gazeHoverIndex === index ? "ml-1" : ""
