@@ -80,7 +80,15 @@ export default function FeaturesSection() {
           <h2 className="text-[28px] md:text-[40px] lg:text-[48px] font-semibold text-black leading-[1.1] tracking-[-1px] mb-3">
             Powering Every Conversation
           </h2>
-          <p className="text-[16px] md:text-[18px] text-gray-600">
+          <p
+            className="text-[18px] md:text-[20px] lg:text-[24px]"
+            style={{
+              fontFamily: "Satoshi, sans-serif",
+              fontWeight: 50,
+              letterSpacing: "-0.04em",
+              color: "#999999",
+            }}
+          >
             Advanced features designed for accessibility first
           </p>
         </motion.div>

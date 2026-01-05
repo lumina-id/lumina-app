@@ -16,7 +16,7 @@ export default function FeatureCard({
 }: FeatureCardProps) {
   return (
     <motion.div
-      className="group relative w-full h-full rounded-[24px] overflow-hidden cursor-pointer"
+      className="group relative w-full h-full rounded-[24px] overflow-hidden"
       whileHover={{ scale: 1.02, y: -8 }}
       transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
     >

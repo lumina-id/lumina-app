@@ -90,7 +90,13 @@ export default function CommunicationSection() {
             When Communication Becomes Physically Hard
           </motion.h2>
           <motion.p
-            className="text-[16px] md:text-[18px] text-[#6b7280] leading-relaxed"
+            className="text-[18px] md:text-[20px] lg:text-[24px]"
+            style={{
+              fontFamily: "Satoshi, sans-serif",
+              fontWeight: 50,
+              letterSpacing: "-0.04em",
+              color: "#999999",
+            }}
             variants={descriptionVariants}
             initial="hidden"
             animate={isInView ? "visible" : "hidden"}

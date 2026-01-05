@@ -1,24 +1,6 @@
 <svg width="616" height="240" viewBox="0 0 616 240" fill="none" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
 <g clip-path="url(#clip0_403_943)">
-<g style="mix-blend-mode:overlay">
-<mask id="mask0_403_943" style="mask-type:alpha" maskUnits="userSpaceOnUse" x="0" y="0" width="616" height="240">
-<rect width="616" height="240" fill="url(#pattern0_403_943)"/>
-</mask>
-<g mask="url(#mask0_403_943)">
-<g filter="url(#filter0_f_403_943)">
-<ellipse cx="-52.2554" cy="215.136" rx="269.336" ry="49.7703" fill="white"/>
-</g>
-<g filter="url(#filter1_f_403_943)">
-<ellipse cx="-78.6721" cy="12.844" rx="242.919" ry="44.9539" fill="white"/>
-</g>
-<g filter="url(#filter2_f_403_943)">
-<ellipse cx="185.922" cy="53.1336" rx="185.922" ry="53.1336" transform="matrix(0.965668 0.259779 -0.778188 0.628031 433.01 133.256)" fill="white"/>
-</g>
-<g filter="url(#filter3_f_403_943)">
-<ellipse cx="162.083" cy="46.3207" rx="162.083" ry="46.3207" transform="matrix(0.965668 0.259779 -0.778188 0.628031 495.08 -56.4214)" fill="white"/>
-</g>
-</g>
-</g>
+
 <g opacity="0.1" filter="url(#filter4_f_403_943)">
 <ellipse cx="-4.50511" cy="22.7675" rx="103.551" ry="89.5548" fill="white"/>
 </g>
@@ -28,20 +10,7 @@
 <g opacity="0.1" filter="url(#filter6_f_403_943)">
 <ellipse cx="216.488" cy="262.308" rx="199.103" ry="73.5369" fill="white"/>
 </g>
-<g style="mix-blend-mode:overlay">
-<g filter="url(#filter7_f_403_943)">
-<ellipse cx="138.278" cy="192.904" rx="130.278" ry="51.6667" fill="white"/>
-</g>
-<g filter="url(#filter8_f_403_943)">
-<ellipse cx="125.5" cy="-17.0955" rx="117.5" ry="46.6667" fill="white"/>
-</g>
-<g filter="url(#filter9_f_403_943)">
-<ellipse cx="439.844" cy="192.684" rx="100.278" ry="40" transform="rotate(30 439.844 192.684)" fill="white"/>
-</g>
-<g filter="url(#filter10_f_403_943)">
-<ellipse cx="461.296" cy="-15.0908" rx="87.4198" ry="34.8711" transform="rotate(30 461.296 -15.0908)" fill="white"/>
-</g>
-</g>
+
 <g opacity="0.5">
 <g filter="url(#filter11_f_403_943)">
 <ellipse cx="303" cy="215.948" rx="160.071" ry="82.9479" fill="#282B71"/>
