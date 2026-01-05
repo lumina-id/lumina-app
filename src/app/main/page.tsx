@@ -63,6 +63,9 @@ export default function MainPage() {
   const [ttsCooldown, setTtsCooldown] = useState(false);
   const lastFetchedContext = useRef<string>("");
 
+  const [showHeardCard, setShowHeardCard] = useState(false);
+  const activeAudioRef = useRef<HTMLAudioElement | null>(null);
+
   // Azure STT Hook
   const {
     isListening,
@@ -113,8 +116,19 @@ export default function MainPage() {
   // Browser-side audio cache
   const audioCache = useRef<Map<string, HTMLAudioElement>>(new Map());
 
+  const stopActiveAudio = () => {
+    if (activeAudioRef.current) {
+      activeAudioRef.current.pause();
+      activeAudioRef.current.currentTime = 0;
+      activeAudioRef.current = null;
+    }
+  };
+
   const handleSpeak = async () => {
     if (!message || ttsCooldown) return;
+
+    // Stop any currently playing audio
+    stopActiveAudio();
 
     try {
       setIsSpeaking(true);
@@ -127,8 +141,13 @@ export default function MainPage() {
         console.log("Playing from browser cache");
         const cachedAudio = audioCache.current.get(cacheKey)!;
         cachedAudio.currentTime = 0;
+
+        activeAudioRef.current = cachedAudio;
         cachedAudio.play();
-        cachedAudio.onended = () => setIsSpeaking(false);
+        cachedAudio.onended = () => {
+          setIsSpeaking(false);
+          activeAudioRef.current = null;
+        };
         return;
       }
 
@@ -145,9 +164,16 @@ export default function MainPage() {
         // Store in browser cache
         audioCache.current.set(cacheKey, audio);
 
+        activeAudioRef.current = audio;
         audio.play();
-        audio.onended = () => setIsSpeaking(false);
-        audio.onerror = () => setIsSpeaking(false);
+        audio.onended = () => {
+          setIsSpeaking(false);
+          activeAudioRef.current = null;
+        };
+        audio.onerror = () => {
+          setIsSpeaking(false);
+          activeAudioRef.current = null;
+        };
       } else {
         setIsSpeaking(false);
       }
@@ -171,10 +197,20 @@ export default function MainPage() {
     clearMessage();
   };
 
+  const handleMicClick = () => {
+    if (isListening) {
+      stopListening();
+    } else {
+      setShowHeardCard(true);
+      startListening();
+    }
+  };
+
   const handleLogout = () => {
     // Cleanup if needed
     clearMessage();
     stopListening(); // Stop STT if running
+    stopActiveAudio();
     if (videoRef.current && videoRef.current.srcObject) {
       const stream = videoRef.current.srcObject as MediaStream;
       stream.getTracks().forEach((track) => track.stop());
@@ -203,22 +239,27 @@ export default function MainPage() {
             {t.main.title}
           </h1>
 
-          <HeardCard
-            texts={{
-              label: t.main.heardCard.label,
-              listening: t.main.heardCard.listening,
-              defaultText: t.main.heardCard.defaultText,
-            }}
-            isListening={isListening}
-            heardText={transcript || interimTranscript}
-          />
+          <div
+            className={`transition-all duration-500 ease-in-out overflow-hidden ${showHeardCard ? "max-h-[500px] opacity-100 translate-y-0" : "max-h-0 opacity-0 -translate-y-4"
+              }`}
+          >
+            <HeardCard
+              texts={{
+                label: t.main.heardCard.label,
+                listening: t.main.heardCard.listening,
+                defaultText: t.main.heardCard.defaultText,
+              }}
+              isListening={isListening}
+              heardText={transcript || interimTranscript}
+            />
+          </div>
 
           <MessageInput
             message={message}
             placeholder={t.main.messageInput.placeholder}
             onSpeakClick={handleSend}
             onTelegramClick={handleTelegramClick}
-            onMicClick={isListening ? stopListening : startListening}
+            onMicClick={handleMicClick}
             isListening={isListening}
           />
 
