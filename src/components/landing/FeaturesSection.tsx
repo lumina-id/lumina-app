@@ -8,25 +8,25 @@ const features = [
     title: "Intelligent Speech Understanding & Response",
     description:
       "Lumina understands spoken conversations and helps users respond—locally or remotely.",
-    imageSrc: "/assets/cards/intelligent-speech.png",
+    imageSrc: "/assets/cards/intelligent.svg",
   },
   {
     title: "Context-Aware Conversation Understanding",
     description:
       "From recognizing questions to offering natural, situation-appropriate replies.",
-    imageSrc: "/assets/cards/context-aware.png",
+    imageSrc: "/assets/cards/context.svg",
   },
   {
     title: "Accessible, Assistive-First Interaction",
     description:
       "Choose how to respond—blink, click, or type. No mode switching required.",
-    imageSrc: "/assets/cards/accessible.png",
+    imageSrc: "/assets/cards/accessible.svg",
   },
   {
     title: "AI-Assisted Messaging Agent",
     description:
       "Lumina can send selected messages on the user's behalf through external platforms without manual commands or app switching.",
-    imageSrc: "/assets/cards/ai-assisted.png",
+    imageSrc: "/assets/cards/AI_Assisted.svg",
   },
 ];
 
