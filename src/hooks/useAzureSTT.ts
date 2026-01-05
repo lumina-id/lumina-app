@@ -37,6 +37,7 @@ export function useAzureSTT({ language = "id-ID", onFinalResult }: UseAzureSTTPr
     const startListening = useCallback(async () => {
         setError(null);
         setInterimTranscript("");
+        setTranscript(""); // Clear previous session's text
 
         try {
             // 1. Get Token (with cache-busting)
