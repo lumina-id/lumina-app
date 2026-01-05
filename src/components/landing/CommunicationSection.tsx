@@ -80,7 +80,7 @@ export default function CommunicationSection() {
   return (
     <section id="about" className="py-16 md:py-24 bg-white" ref={sectionRef}>
       <div className="max-w-[1400px] mx-auto px-4 md:px-8 lg:px-16">
-        <div className="max-w-[600px] mb-12">
+        <div className="max-w-[900px] mb-12">
           <motion.h2
             className="text-[28px] md:text-[40px] lg:text-[48px] font-semibold text-black leading-[1.1] tracking-[-1px] mb-4"
             variants={titleVariants}
@@ -90,7 +90,13 @@ export default function CommunicationSection() {
             When Communication Becomes Physically Hard
           </motion.h2>
           <motion.p
-            className="text-[16px] md:text-[18px] text-[#6b7280] leading-relaxed"
+            className="text-[18px] md:text-[20px] lg:text-[24px] max-w-[750px]"
+            style={{
+              fontFamily: "Satoshi, sans-serif",
+              fontWeight: 50,
+              letterSpacing: "-0.04em",
+              color: "#999999",
+            }}
             variants={descriptionVariants}
             initial="hidden"
             animate={isInView ? "visible" : "hidden"}
