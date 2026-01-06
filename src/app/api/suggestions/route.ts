@@ -2,8 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 
 export async function POST(req: NextRequest) {
     try {
-        const { context, lang } = await req.json();
-        console.log("API Suggestions called with context:", context, "lang:", lang);
+        const { context, lang, type } = await req.json();
+        console.log("API Suggestions called with context:", context, "lang:", lang, "type:", type);
 
         // Default suggestions based on language
         if (!context) {
@@ -24,24 +24,50 @@ export async function POST(req: NextRequest) {
             return NextResponse.json({ error: "Azure OpenAI Config Missing" }, { status: 500 });
         }
 
-        // Different prompts based on language
-        const prompt = lang === "en"
-            ? `You are an AAC sentence suggestion system.
-Generate 4 short English sentences using the word "${context}".
-- First-person perspective ("I")
-- Short, clear, easy to understand
-- Express a need, request, or condition
+        let prompt = "";
 
-Output ONLY a JSON array: ["sentence 1", "sentence 2", "sentence 3", "sentence 4"]
-NO explanation. NO reasoning. JUST the JSON.`
-            : `Kamu adalah sistem saran kalimat AAC.
-Buat 4 kalimat pendek Bahasa Indonesia menggunakan kata "${context}".
-- Sudut pandang orang pertama ("Saya")
-- Singkat, jelas, mudah dipahami
-- Mengungkapkan kebutuhan, permintaan, atau kondisi
+        if (type === 'stt') {
+            // STT Recommendation Logic: Suggest RESPONSES to what was heard
+            prompt = lang === "en"
+                ? `You are an AAC (Augmentative and Alternative Communication) assistant.
+The user is listening to someone who just said: "${context}".
+Generate 4 natural, first-person SHORT responses that the AAC user might want to say back.
+- Responses should be relevant to the input question or statement.
+- Keep them short, conversational, and polite.
+- Mix of "Yes/No" with context, clarifying questions, or direct answers.
 
-Output HANYA JSON array: ["kalimat 1", "kalimat 2", "kalimat 3", "kalimat 4"]
-TANPA penjelasan. TANPA reasoning. HANYA JSON.`;
+Output ONLY a JSON array: ["Response 1", "Response 2", "Response 3", "Response 4"]
+NO explanation. JUST the JSON.`
+                : `Kamu adalah asisten komunikasi AAC (Augmentative and Alternative Communication).
+Pengguna sedang mendengarkan seseorang yang baru saja berkata: "${context}".
+Buatkan 4 respon BALASAN pendek yang wajar menggunakan sudut pandang orang pertama ("Saya").
+- Respon harus relevan dengan pertanyaan atau pernyataan yang didengar.
+- Gunakan bahasa percakapan yang sopan dan natural.
+- Campuran antara jawaban langsung, pertanyaan balik, atau pernyataan kondisi.
+
+Output HANYA JSON array: ["Respon 1", "Respon 2", "Respon 3", "Respon 4"]
+TANPA penjelasan. HANYA JSON.`;
+
+        } else {
+            // Typing Suggestion Logic: Suggest COMPLETIONS for what is being typed
+            prompt = lang === "en"
+                ? `You are an AAC sentence completion assistant.
+The user is typing: "${context}".
+Predict 4 likely ways to COMPLETE or CONTINUE this sentence.
+- Suggestions should clearly follow the input text.
+- Short, useful everyday phrases.
+
+Output ONLY a JSON array: ["completion 1", "completion 2", "completion 3", "completion 4"]
+NO explanation. JUST the JSON.`
+                : `Kamu adalah asisten pelengkap kalimat AAC.
+Pengguna sedang mengetik: "${context}".
+Prediksi 4 cara logis untuk MELENGKAPI atau MELANJUTKAN kalimat ini.
+- Saran harus nyambung dengan teks yang sedang diketik.
+- Frasa sehari-hari yang singkat dan berguna.
+
+Output HANYA JSON array: ["lengkapan 1", "lengkapan 2", "lengkapan 3", "lengkapan 4"]
+TANPA penjelasan. HANYA JSON.`;
+        }
 
         const url = `${endpoint}openai/deployments/${deploymentName}/chat/completions?api-version=${apiVersion}`;
         console.log("Calling Azure OpenAI:", url);
