@@ -104,9 +104,16 @@ lumina-app/
     ```
 
 4.  **Setup Database Schema**
+    First, create the database in your MySQL server:
+    ```sql
+    CREATE DATABASE lumina_db;
+    ```
+    
+    Then, import the schema table:
     ```bash
     mysql -u root -p lumina_db < database/schema.sql
     ```
+    *(Or simply copy the contents of `database/schema.sql` and run it in your SQL client)*
 
 5.  **Run Development Server**
     ```bash
