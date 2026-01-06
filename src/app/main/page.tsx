@@ -78,6 +78,15 @@ export default function MainPage() {
     // Text only appears in HeardCard, not in keyboard input
   });
 
+  // Handle STT Finished
+  useEffect(() => {
+    if (!isListening && transcript) {
+      console.log("STT Stopped. Fetching suggestions for:", transcript);
+      // STT Just finished, fetch "response" suggestions
+      fetchSuggestions(transcript, 'stt');
+    }
+  }, [isListening, transcript]);
+
   // Debounce fetching suggestions - 3 seconds after user stops typing
   useEffect(() => {
     // Don't fetch if context hasn't changed or if a suggestion is selected
@@ -85,7 +94,8 @@ export default function MainPage() {
 
     const timer = setTimeout(() => {
       if (message && message !== lastFetchedContext.current) {
-        fetchSuggestions(message);
+        // Typing: fetch "completion" suggestions
+        fetchSuggestions(message, 'typing');
         lastFetchedContext.current = message;
       }
     }, 3000); // 3 second debounce
@@ -93,14 +103,14 @@ export default function MainPage() {
     return () => clearTimeout(timer);
   }, [message, selectedSuggestionIndex]);
 
-  const fetchSuggestions = async (context: string) => {
-    console.log("Frontend fetching suggestions for:", context);
+  const fetchSuggestions = async (context: string, type: 'stt' | 'typing') => {
+    console.log(`Frontend fetching suggestions (${type}) for:`, context);
     setIsLoadingSuggestions(true);
     try {
       const res = await fetch("/api/suggestions", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ context, lang: locale }),
+        body: JSON.stringify({ context, lang: locale, type }),
       });
       const data = await res.json();
       if (data.suggestions && Array.isArray(data.suggestions)) {

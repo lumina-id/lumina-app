@@ -2,8 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 
 export async function POST(req: NextRequest) {
     try {
-        const { context, lang } = await req.json();
-        console.log("API Suggestions called with context:", context, "lang:", lang);
+        const { context, lang, type } = await req.json();
+        console.log("API Suggestions called with context:", context, "lang:", lang, "type:", type);
 
         // Default suggestions based on language
         if (!context) {
@@ -24,24 +24,96 @@ export async function POST(req: NextRequest) {
             return NextResponse.json({ error: "Azure OpenAI Config Missing" }, { status: 500 });
         }
 
-        // Different prompts based on language
-        const prompt = lang === "en"
-            ? `You are an AAC sentence suggestion system.
-Generate 4 short English sentences using the word "${context}".
-- First-person perspective ("I")
-- Short, clear, easy to understand
-- Express a need, request, or condition
+        let prompt = "";
 
-Output ONLY a JSON array: ["sentence 1", "sentence 2", "sentence 3", "sentence 4"]
-NO explanation. NO reasoning. JUST the JSON.`
-            : `Kamu adalah sistem saran kalimat AAC.
-Buat 4 kalimat pendek Bahasa Indonesia menggunakan kata "${context}".
-- Sudut pandang orang pertama ("Saya")
-- Singkat, jelas, mudah dipahami
-- Mengungkapkan kebutuhan, permintaan, atau kondisi
+        if (type === 'stt') {
+            // STT Recommendation Logic: Suggest RESPONSES to what was heard
+            prompt = lang === "en"
+                ? `You are an assistant for a person with speech difficulties (AAC user).
+The text below is what a CAREGIVER or FRIEND said TO the user: "${context}".
+Generate 4 natural, short first-person responses for the user to reply back.
+- Responses should express the User's NEEDS, WANTS, or FEELINGS.
+- Do NOT offer help. The user is usually the one RECEIVING help.
+- Keep it simple, direct, and polite.
 
-Output HANYA JSON array: ["kalimat 1", "kalimat 2", "kalimat 3", "kalimat 4"]
-TANPA penjelasan. TANPA reasoning. HANYA JSON.`;
+Examples:
+Input (Caregiver): "What do you want to eat?"
+Output (User): ["I want fried rice", "Anything is fine", "I am not hungry", "Maybe some soup?"]
+
+Input (Caregiver): "Can I help you with something?"
+Output (User): ["I am thirsty", "I need to go to the bathroom", "No, I am fine", "I want to sleep"]
+
+Task:
+Input (Caregiver): "${context}"
+Output ONLY a JSON array.
+NO explanation. JUST the JSON.`
+                : `Anda adalah asisten untuk pengguna dengan keterbatasan bicara (pengguna AAC).
+Teks di bawah adalah apa yang dikatakan PERAWAT atau TEMAN kepada pengguna: "${context}".
+Buatkan 4 jawaban singkat sudut pandang orang pertama ("Saya") untuk pengguna menjawab balik.
+- Jawaban harus mengungkapkan KEBUTUHAN, KEINGINAN, atau PERASAAN pengguna.
+- JANGAN menawarkan bantuan. Pengguna biasanya adalah yang MENERIMA bantuan.
+- Gunakan bahasa percakapan sehari-hari yang wajar.
+
+Contoh:
+Input (Perawat): "Kamu mau makan apa?"
+Output (Pengguna): ["Mau nasi goreng", "Apa saja boleh", "Saya tidak lapar", "Mungkin bakso?"]
+
+Input (Perawat): "Ada yang bisa saya bantu?"
+Output (Pengguna): ["Saya haus, minta minum", "Saya mau ke toilet", "Tidak ada, terima kasih", "Saya ingin istirahat"]
+
+Tugas:
+Input (Perawat): "${context}"
+Output HANYA JSON array.
+TANPA penjelasan. HANYA JSON.`;
+
+        } else {
+            // Typing Suggestion Logic: Suggest COMPLETIONS for what is being typed
+            prompt = lang === "en"
+                ? `You are an AAC sentence completion assistant.
+The user is typing: "${context}".
+Predict 4 likely ways to COMPLETE, CONTINUE, or EXPAND this sentence.
+If the input is a keyword/short phrase, expand it into a full polite sentence.
+
+Examples:
+Input: "I want to"
+Output: ["I want to eat", "I want to go home", "I want to sleep", "I want to drink"]
+
+Input: "Can you"
+Output: ["Can you help me?", "Can you repeat that?", "Can you open this?", "Can you come here?"]
+
+Input: "Bathroom"
+Output: ["I need to go to the bathroom", "Where is the bathroom?", "I need a shower", "I need to wash my hands"]
+
+Input: "Listen Music"
+Output: ["I want to listen to music right now", "Play some music please", "I love this song", "Turn up the volume"]
+
+Task:
+Input: "${context}"
+Output ONLY a JSON array: ["completion 1", "completion 2", "completion 3", "completion 4"]
+NO explanation. JUST the JSON.`
+                : `Kamu adalah asisten pelengkap kalimat AAC.
+Pengguna sedang mengetik: "${context}".
+Prediksi 4 cara logis untuk MELENGKAPI, MELANJUTKAN, atau MENGEMBANGKAN kalimat ini.
+Jika input berupa kata kunci, kembangkan menjadi kalimat lengkap yang sopan.
+
+Contoh:
+Input: "Saya ingin"
+Output: ["Saya ingin makan", "Saya ingin pulang", "Saya ingin tidur", "Saya ingin minum"]
+
+Input: "Bisa tolong"
+Output: ["Bisa tolong bantu saya?", "Bisa tolong ulangi?", "Bisa tolong ambilkan itu?", "Bisa tolong jelaskan?"]
+
+Input: "Kamar Mandi"
+Output: ["Saya perlu ke kamar mandi", "Dimana kamar mandi?", "Saya mau mandi", "Saya mau cuci tangan"]
+
+Input: "Dengar Musik"
+Output: ["Saya ingin mendengarkan musik sekarang", "Tolong putar musik", "Saya suka lagu ini", "Keraskan suaranya"]
+
+Tugas:
+Input: "${context}"
+Output HANYA JSON array: ["lengkapan 1", "lengkapan 2", "lengkapan 3", "lengkapan 4"]
+TANPA penjelasan. HANYA JSON.`;
+        }
 
         const url = `${endpoint}openai/deployments/${deploymentName}/chat/completions?api-version=${apiVersion}`;
         console.log("Calling Azure OpenAI:", url);
