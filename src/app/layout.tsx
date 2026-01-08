@@ -10,8 +10,11 @@ const satoshi = localFont({
 });
 
 export const metadata: Metadata = {
-  title: "Lumina",
-  description: "Lumina App",
+  title: "Lumina - Smart AAC",
+  description: "Empowering communication through gaze tracking and AI.",
+  icons: {
+    icon: "/assets/lumina-icon.svg",
+  },
 };
 
 export default function RootLayout({

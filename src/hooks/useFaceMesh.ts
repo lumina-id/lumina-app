@@ -7,7 +7,7 @@ import { OneEuroFilter } from "../utils/smoothing";
 export const useFaceMesh = (videoRef: React.RefObject<HTMLVideoElement>) => {
   const [faceLandmarker, setFaceLandmarker] = useState<FaceLandmarker | null>(null);
   const requestRef = useRef<number>();
-  const { setGaze, setIsFaceDetected, setFaceCenter } = useGaze();
+  const { setGaze, setIsFaceDetected, setFaceCenter, isGazeEnabled } = useGaze();
 
   // Filters for smoothing
   const filterX = useRef(new OneEuroFilter(1.0, 0.0, 1.0));
@@ -68,7 +68,7 @@ export const useFaceMesh = (videoRef: React.RefObject<HTMLVideoElement>) => {
       // 1.0 = 1:1 mapping (requires large movement)
       // 2.0 = 2x sensitivity (requires half the movement)
       // 2.5 = Recommended for accessibility
-      const sensitivityX = 2.5;
+      const sensitivityX = 3.0;
       const sensitivityY = 5.0; // Higher vertical sensitivity for easier up/down access
 
       // 1. Get mirrored coordinates (0 to 1)
@@ -136,8 +136,18 @@ export const useFaceMesh = (videoRef: React.RefObject<HTMLVideoElement>) => {
           // We use the smoothed coordinates
           const element = document.elementFromPoint(smoothX, smoothY);
           if (element && element instanceof HTMLElement) {
-            element.click();
-            console.log("Blink Click Triggered at:", smoothX, smoothY);
+            // Logic for Gaze Pause
+            if (isGazeEnabled) {
+              element.click();
+              console.log("Blink Click Triggered at:", smoothX, smoothY);
+            } else {
+              // Only allow clicking the toggle button if disabled
+              const toggleBtn = element.closest("#gaze-toggle-btn");
+              if (toggleBtn && toggleBtn instanceof HTMLElement) {
+                toggleBtn.click();
+                console.log("Emergency Override Click Triggered");
+              }
+            }
           }
         }
       } else {

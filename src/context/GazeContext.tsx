@@ -11,6 +11,8 @@ interface GazeContextType {
   setIsFaceDetected: (status: boolean) => void;
   faceCenter: { x: number; y: number };
   setFaceCenter: (center: { x: number; y: number }) => void;
+  isGazeEnabled: boolean;
+  setGazeEnabled: (status: boolean) => void;
 }
 
 const GazeContext = createContext<GazeContextType | undefined>(undefined);
@@ -21,6 +23,7 @@ export const GazeProvider = ({ children }: { children: ReactNode }) => {
   const [isCalibrated, setIsCalibrated] = useState(false);
   const [isFaceDetected, setIsFaceDetected] = useState(false);
   const [faceCenter, setFaceCenter] = useState({ x: 0.5, y: 0.5 });
+  const [isGazeEnabled, setGazeEnabled] = useState(true);
 
   const setGaze = (x: number, y: number) => {
     setGazeX(x);
@@ -28,11 +31,12 @@ export const GazeProvider = ({ children }: { children: ReactNode }) => {
   };
 
   return (
-    <GazeContext.Provider value={{ 
-      gazeX, gazeY, setGaze, 
-      isCalibrated, setIsCalibrated, 
+    <GazeContext.Provider value={{
+      gazeX, gazeY, setGaze,
+      isCalibrated, setIsCalibrated,
       isFaceDetected, setIsFaceDetected,
-      faceCenter, setFaceCenter
+      faceCenter, setFaceCenter,
+      isGazeEnabled, setGazeEnabled
     }}>
       {children}
     </GazeContext.Provider>
