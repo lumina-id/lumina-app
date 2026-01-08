@@ -32,7 +32,7 @@ export const id: Translations = {
     heardCard: {
       label: "Yang kami dengar",
       listening: "Mendengarkan...",
-      defaultText: "Ucapkan kata atau apa gitu",
+      defaultText: "Ada yang bisa saya bantu?",
     },
     messageInput: {
       placeholder: "Pesan Anda akan muncul di sini...",

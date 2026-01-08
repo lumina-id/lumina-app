@@ -111,7 +111,7 @@ export default function HeroSection() {
                 Lumina
                 <span className="relative w-[36px] h-[36px] md:w-[48px] md:h-[48px] inline-block align-middle">
                   <Image
-                    src="/assets/Icon.png"
+                    src="/assets/lumina-icon.svg"
                     alt="Lumina"
                     fill
                     className="object-contain"

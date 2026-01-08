@@ -10,6 +10,7 @@ import { useLanguage } from "@/context/LanguageContext";
 import { useMessageComposer } from "@/hooks/main/useMessageComposer";
 import { useFaceMesh } from "@/hooks/useFaceMesh";
 import { useAzureSTT } from "@/hooks/useAzureSTT";
+import { useTelegramListener, TelegramMessage } from "@/hooks/useTelegramListener";
 import { useEffect, useRef, useState } from "react";
 
 export default function MainPage() {
@@ -64,6 +65,8 @@ export default function MainPage() {
   const lastFetchedContext = useRef<string>("");
 
   const [showHeardCard, setShowHeardCard] = useState(false);
+  const [heardCardText, setHeardCardText] = useState("");
+  const [heardCardSource, setHeardCardSource] = useState<string | undefined>(undefined);
   const activeAudioRef = useRef<HTMLAudioElement | null>(null);
 
   // Azure STT Hook
@@ -75,17 +78,39 @@ export default function MainPage() {
     transcript,
   } = useAzureSTT({
     language: locale === "id" ? "id-ID" : "en-US",
-    // Text only appears in HeardCard, not in keyboard input
+    onFinalResult: (text) => {
+      // When STT finishes a sentence, show it on card and fetch suggestions
+      setHeardCardText(text);
+      setHeardCardSource(undefined); // undefined = defaults to "Listening" or similar
+      fetchSuggestions(text, 'stt');
+    }
   });
 
-  // Handle STT Finished
-  useEffect(() => {
-    if (!isListening && transcript) {
-      console.log("STT Stopped. Fetching suggestions for:", transcript);
-      // STT Just finished, fetch "response" suggestions
-      fetchSuggestions(transcript, 'stt');
+  // Telegram Listener Hook
+  const { latestMessage } = useTelegramListener({
+    pollInterval: 3000,
+    onMessage: (msg: TelegramMessage) => {
+      console.log("New Telegram Message:", msg);
+      // Show in HeardCard
+      const sourceName = msg.sender === "Unknown" ? "Telegram" : `From ${msg.sender}`;
+      setHeardCardText(msg.text);
+      setHeardCardSource(sourceName);
+      setShowHeardCard(true);
+
+      // Fetch replies for this message
+      fetchSuggestions(msg.text, 'stt'); // Treat it like STT input for suggestions
     }
-  }, [isListening, transcript]);
+  });
+
+  // Handle STT Display logic (Real-time)
+  useEffect(() => {
+    if (isListening) {
+      setHeardCardText(interimTranscript || transcript);
+      if (interimTranscript) {
+        setShowHeardCard(true);
+      }
+    }
+  }, [isListening, interimTranscript, transcript]);
 
   // Debounce fetching suggestions - 3 seconds after user stops typing
   useEffect(() => {
@@ -260,7 +285,8 @@ export default function MainPage() {
                 defaultText: t.main.heardCard.defaultText,
               }}
               isListening={isListening}
-              heardText={transcript || interimTranscript}
+              heardText={heardCardText}
+              sourceLabel={heardCardSource}
             />
           </div>
 
