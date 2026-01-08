@@ -116,7 +116,7 @@ export default function VirtualKeyboard({
           key={key}
           ref={setKeyRef(key, isMobile)}
           onClick={() => handleKeyClick(key)}
-          className={`flex items-center justify-center rounded-[12px] transition-all shadow-sm ${activeStyle} ${disabledStyle} ${isMobile ? "w-[40px] h-[44px]" : "w-[60px] h-[56px]"
+          className={`flex items-center justify-center rounded-[12px] transition-all shadow-sm outline-none focus:outline-none ${activeStyle} ${disabledStyle} ${isMobile ? "w-[40px] h-[44px]" : "w-[60px] h-[56px]"
             }`}
         >
           <svg
@@ -151,7 +151,7 @@ export default function VirtualKeyboard({
           key={key}
           ref={setKeyRef(key, isMobile)}
           onClick={() => handleKeyClick(key)}
-          className={`w-[88px] h-[44px] flex items-center justify-center rounded-[12px] transition-all shadow-sm text-[16px] font-medium text-[#202020] ${activeStyle} ${disabledStyle}`}
+          className={`w-[88px] h-[44px] flex items-center justify-center rounded-[12px] transition-all shadow-sm text-[16px] font-medium text-[#202020] outline-none focus:outline-none ${activeStyle} ${disabledStyle}`}
         >
           {texts.space}
         </button>
@@ -163,7 +163,7 @@ export default function VirtualKeyboard({
         key={key}
         ref={setKeyRef(key, isMobile)}
         onClick={() => handleKeyClick(key)}
-        className={`flex items-center justify-center rounded-[12px] transition-all shadow-sm font-medium text-[#202020] ${activeStyle} ${disabledStyle} ${isMobile ? "w-[40px] h-[44px] text-[16px]" : "w-[60px] h-[56px] text-[18px]"
+        className={`flex items-center justify-center rounded-[12px] transition-all shadow-sm font-medium text-[#202020] outline-none focus:outline-none ${activeStyle} ${disabledStyle} ${isMobile ? "w-[40px] h-[44px] text-[16px]" : "w-[60px] h-[56px] text-[18px]"
           }`}
       >
         {key}
@@ -191,11 +191,11 @@ export default function VirtualKeyboard({
           <button
             ref={setKeyRef("SPACE_DESKTOP", false)}
             onClick={() => handleKeyClick("SPACE_DESKTOP")}
-            className={`w-[280px] h-[52px] flex items-center justify-center rounded-full shadow-sm text-[18px] font-medium text-[#202020] transition-all ${isSpaceActive
-                ? "border-[3px] border-[#33FF7E] shadow-[0_0_15px_rgba(51,255,126,0.5)] bg-white transform scale-105 z-10"
-                : isSpaceGazeHover
-                  ? "border-[2px] border-[#354BF3] shadow-[0_0_12px_rgba(53,75,243,0.4)] bg-[#eef2ff] transform scale-105 z-10"
-                  : "bg-[#f1f5f9] border border-transparent btn-hover-key"
+            className={`w-[280px] h-[52px] flex items-center justify-center rounded-full shadow-sm text-[18px] font-medium text-[#202020] transition-all outline-none focus:outline-none ${isSpaceActive
+              ? "border-[3px] border-[#33FF7E] shadow-[0_0_15px_rgba(51,255,126,0.5)] bg-white transform scale-105 z-10"
+              : isSpaceGazeHover
+                ? "border-[2px] border-[#354BF3] shadow-[0_0_12px_rgba(53,75,243,0.4)] bg-[#eef2ff] transform scale-105 z-10"
+                : "bg-[#f1f5f9] border border-transparent btn-hover-key"
               } ${disabledSpaceStyle}`}
           >
             {texts.space}
@@ -205,13 +205,13 @@ export default function VirtualKeyboard({
             id="gaze-toggle-btn"
             ref={setKeyRef("TOGGLE", false)}
             onClick={() => handleKeyClick("TOGGLE")}
-            className={`w-[56px] h-[56px] flex items-center justify-center rounded-full shadow-sm transition-all ${isToggleActive
-                ? "border-[3px] border-[#33FF7E] bg-white transform scale-105 z-10"
-                : !isGazeEnabled
-                  ? "bg-[#fee2e2] border-[2px] border-[#ef4444] shadow-[0_0_15px_rgba(239,68,68,0.5)] z-20" // Red alert state
-                  : isToggleGazeHover
-                    ? "border-[2px] border-[#354BF3] bg-[#eef2ff] transform scale-105 z-10"
-                    : "bg-[#f1f5f9] border border-transparent btn-hover-key"
+            className={`w-[56px] h-[56px] flex items-center justify-center rounded-full shadow-sm transition-all outline-none focus:outline-none ${isToggleActive
+              ? "border-[3px] border-[#33FF7E] bg-white transform scale-105 z-10"
+              : !isGazeEnabled
+                ? "bg-[#fee2e2] border-[2px] border-[#ef4444] shadow-[0_0_15px_rgba(239,68,68,0.5)] z-20" // Red alert state
+                : isToggleGazeHover
+                  ? "border-[2px] border-[#354BF3] bg-[#eef2ff] transform scale-105 z-10"
+                  : "bg-[#f1f5f9] border border-transparent btn-hover-key"
               }`}
           >
             {isGazeEnabled ? (
@@ -241,9 +241,9 @@ export default function VirtualKeyboard({
       <button
         ref={setKeyRef("CLEAR", false)}
         onClick={onClear}
-        className={`flex items-center justify-center gap-2 px-[20px] py-[12px] rounded-[12px] text-[14px] font-medium shadow-sm mt-3 transition-all duration-200 cursor-pointer ${gazeHoverKey === "D_CLEAR"
-            ? "bg-[#fee2e2] border-[2px] border-[#f87171] shadow-[0_0_12px_rgba(248,113,113,0.4)] transform scale-105 text-[#991b1b]"
-            : "bg-[#fef2f2] border border-[#fecaca] text-[#b91c1c] hover:bg-[#fee2e2] hover:scale-102 hover:shadow-md"
+        className={`flex items-center justify-center gap-2 px-[20px] py-[12px] rounded-[12px] text-[14px] font-medium shadow-sm mt-3 transition-all duration-200 cursor-pointer outline-none focus:outline-none ${gazeHoverKey === "D_CLEAR"
+          ? "bg-[#fee2e2] border-[2px] border-[#f87171] shadow-[0_0_12px_rgba(248,113,113,0.4)] transform scale-105 text-[#991b1b]"
+          : "bg-[#fef2f2] border border-[#fecaca] text-[#b91c1c] hover:bg-[#fee2e2] hover:scale-102 hover:shadow-md"
           } ${disabledSpaceStyle}`}
       >
         <svg
