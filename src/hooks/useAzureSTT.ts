@@ -10,6 +10,7 @@ interface UseAzureSTTProps {
 
 export function useAzureSTT({ language = "id-ID", onFinalResult }: UseAzureSTTProps = {}) {
     const [isListening, setIsListening] = useState(false);
+    const [isLoading, setIsLoading] = useState(false);
     const [transcript, setTranscript] = useState(""); // Final text accumulated
     const [interimTranscript, setInterimTranscript] = useState(""); // Real-time text
     const [error, setError] = useState<string | null>(null);
@@ -17,24 +18,33 @@ export function useAzureSTT({ language = "id-ID", onFinalResult }: UseAzureSTTPr
     const recognizerRef = useRef<SpeechSDK.SpeechRecognizer | null>(null);
 
     const stopListening = useCallback(() => {
+        if (isLoading) return; // Prevent race conditions
+
+        setIsLoading(true);
         if (recognizerRef.current) {
             recognizerRef.current.stopContinuousRecognitionAsync(
                 () => {
                     setIsListening(false);
                     recognizerRef.current?.close();
                     recognizerRef.current = null;
+                    setIsLoading(false);
                 },
                 (err) => {
                     console.error("Error stopping recognition:", err);
                     setIsListening(false);
+                    setIsLoading(false);
                 }
             );
         } else {
             setIsListening(false);
+            setIsLoading(false);
         }
-    }, []);
+    }, [isLoading]);
 
     const startListening = useCallback(async () => {
+        if (isLoading || isListening) return; // Prevent double start
+
+        setIsLoading(true);
         setError(null);
         setInterimTranscript("");
         setTranscript(""); // Clear previous session's text
@@ -101,11 +111,30 @@ export function useAzureSTT({ language = "id-ID", onFinalResult }: UseAzureSTTPr
                 if (e.reason === SpeechSDK.CancellationReason.Error) {
                     setError(e.errorDetails);
                 }
-                stopListening();
+                // Don't call stopListening() immediately here to avoid recursion loops if stop fails
+                // But generally safe to just update state
+                setIsListening(false);
+                if (recognizerRef.current) {
+                    try {
+                        recognizerRef.current.stopContinuousRecognitionAsync(() => {
+                            recognizerRef.current?.close();
+                            recognizerRef.current = null;
+                        });
+                    } catch (e) { }
+                }
             };
 
             recognizer.sessionStopped = (s, e) => {
-                stopListening();
+                // Session stopped naturally
+                setIsListening(false);
+                if (recognizerRef.current) {
+                    try {
+                        recognizerRef.current.stopContinuousRecognitionAsync(() => {
+                            recognizerRef.current?.close();
+                            recognizerRef.current = null;
+                        });
+                    } catch (e) { }
+                }
             };
 
             // 5. Start
@@ -114,18 +143,21 @@ export function useAzureSTT({ language = "id-ID", onFinalResult }: UseAzureSTTPr
                 () => {
                     console.log("[STT] Recognition started successfully");
                     setIsListening(true);
+                    setIsLoading(false);
                 },
                 (err) => {
                     console.error("Error starting recognition:", err);
                     setError(err);
+                    setIsLoading(false);
                 }
             );
         } catch (err: any) {
             console.error("STT Error:", err);
             setError(err.message);
             setIsListening(false);
+            setIsLoading(false);
         }
-    }, [language, onFinalResult, stopListening]);
+    }, [language, onFinalResult, isLoading, isListening]); // Added dependencies
 
     // Cleanup on unmount
     useEffect(() => {
@@ -133,6 +165,7 @@ export function useAzureSTT({ language = "id-ID", onFinalResult }: UseAzureSTTPr
             if (recognizerRef.current) {
                 recognizerRef.current.stopContinuousRecognitionAsync(() => {
                     recognizerRef.current?.close();
+                    recognizerRef.current = null;
                 });
             }
         };
@@ -140,6 +173,7 @@ export function useAzureSTT({ language = "id-ID", onFinalResult }: UseAzureSTTPr
 
     return {
         isListening,
+        isLoading,
         startListening,
         stopListening,
         transcript,

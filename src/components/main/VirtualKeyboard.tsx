@@ -7,6 +7,7 @@ interface VirtualKeyboardProps {
   onSpace: () => void;
   onBackspace: () => void;
   onClear: () => void;
+  disabled?: boolean;
   texts: {
     space: string;
     clearMessage: string;
@@ -37,6 +38,7 @@ export default function VirtualKeyboard({
   onSpace,
   onBackspace,
   onClear,
+  disabled = false,
   texts,
 }: VirtualKeyboardProps) {
   const [activeKey, setActiveKey] = useState<string | null>(null);
@@ -46,6 +48,11 @@ export default function VirtualKeyboard({
 
   // Check gaze hover
   useEffect(() => {
+    if (disabled) {
+      setGazeHoverKey(null);
+      return;
+    }
+
     const padding = 10;
     let foundKey: string | null = null;
 
@@ -65,9 +72,11 @@ export default function VirtualKeyboard({
     });
 
     setGazeHoverKey(foundKey);
-  }, [gazeX, gazeY]);
+  }, [gazeX, gazeY, disabled]);
 
   const handleKeyClick = (key: string) => {
+    if (disabled) return; // Prevent all interactions when disabled
+
     setActiveKey(key);
     setTimeout(() => setActiveKey(null), 200);
 
