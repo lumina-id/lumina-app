@@ -12,6 +12,8 @@ interface MessageInputProps {
   onTelegramClick?: () => void;
   onMicClick?: () => void;
   isListening?: boolean;
+  isLoading?: boolean;
+  disabled?: boolean;
 }
 
 export default function MessageInput({
@@ -21,6 +23,8 @@ export default function MessageInput({
   onTelegramClick,
   onMicClick,
   isListening = false,
+  isLoading = false,
+  disabled = false,
 }: MessageInputProps) {
   const hasMessage = message.length > 0;
   const { gazeX, gazeY } = useGaze();
@@ -44,7 +48,12 @@ export default function MessageInput({
 
   // Check gaze hover for speak button
   useEffect(() => {
-    if (!speakRef.current) return;
+    if (!speakRef.current || disabled) {
+      setIsSpeakGazeHover(false);
+      speakHoverStart.current = null;
+      speakDwellTriggered.current = false;
+      return;
+    }
 
     const padding = 20;
     const rect = speakRef.current.getBoundingClientRect();
@@ -71,11 +80,16 @@ export default function MessageInput({
       speakHoverStart.current = null;
       speakDwellTriggered.current = false;
     }
-  }, [gazeX, gazeY, onSpeakClick]);
+  }, [gazeX, gazeY, onSpeakClick, disabled]);
 
   // Check gaze hover for telegram button
   useEffect(() => {
-    if (!telegramRef.current) return;
+    if (!telegramRef.current || disabled) {
+      setIsTelegramGazeHover(false);
+      telegramHoverStart.current = null;
+      telegramDwellTriggered.current = false;
+      return;
+    }
 
     const padding = 20;
     const rect = telegramRef.current.getBoundingClientRect();
@@ -102,11 +116,16 @@ export default function MessageInput({
       telegramHoverStart.current = null;
       telegramDwellTriggered.current = false;
     }
-  }, [gazeX, gazeY, onTelegramClick]);
+  }, [gazeX, gazeY, onTelegramClick, disabled]);
 
   // Check gaze hover for mic button
   useEffect(() => {
-    if (!micRef.current) return;
+    if (!micRef.current || isLoading || disabled) {
+      setIsMicGazeHover(false);
+      micHoverStart.current = null;
+      micDwellTriggered.current = false;
+      return;
+    }
 
     const padding = 20;
     const rect = micRef.current.getBoundingClientRect();
@@ -133,7 +152,7 @@ export default function MessageInput({
       micHoverStart.current = null;
       micDwellTriggered.current = false;
     }
-  }, [gazeX, gazeY, onMicClick]);
+  }, [gazeX, gazeY, onMicClick, isLoading, disabled]);
 
   return (
     <div className="w-full bg-white rounded-[20px] p-5 border border-[#e5e7eb] shadow-sm">
@@ -146,12 +165,13 @@ export default function MessageInput({
           )}
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-7">
           <button
             ref={micRef}
-            onClick={onMicClick}
-            className={`w-[40px] h-[40px] flex items-center justify-center rounded-[10px] btn-hover-icon ${isMicGazeHover ? "scale-110 shadow-[0_4px_20px_rgba(11,31,183,0.5)]" : ""
-              }`}
+            onClick={isLoading ? undefined : onMicClick}
+            disabled={isLoading}
+            className={`w-[40px] h-[40px] flex items-center justify-center rounded-[10px] btn-hover-icon ${isMicGazeHover && !isLoading ? "scale-110 shadow-[0_4px_20px_rgba(11,31,183,0.5)]" : ""
+              } ${isLoading ? "opacity-50 cursor-not-allowed" : ""}`}
             style={{
               background: "linear-gradient(180deg, #354BF3 0%, #0B1FB7 100%)"
             }}

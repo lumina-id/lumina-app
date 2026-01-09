@@ -72,6 +72,7 @@ export default function MainPage() {
   // Azure STT Hook
   const {
     isListening,
+    isLoading,
     startListening,
     stopListening,
     interimTranscript,
@@ -233,6 +234,9 @@ export default function MainPage() {
   };
 
   const handleMicClick = () => {
+    // Prevent action if loading
+    if (isLoading) return;
+
     if (isListening) {
       stopListening();
     } else {
@@ -297,6 +301,8 @@ export default function MainPage() {
             onTelegramClick={handleTelegramClick}
             onMicClick={handleMicClick}
             isListening={isListening}
+            isLoading={isLoading}
+            disabled={isTelegramOpen}
           />
 
           <SuggestedResponses
@@ -313,6 +319,7 @@ export default function MainPage() {
             selectedIndex={selectedSuggestionIndex}
             onSelect={selectSuggestion}
             isLoading={isLoadingSuggestions}
+            disabled={isTelegramOpen}
           />
 
           <p className="text-[14px] text-[#94a3b8] text-center tracking-[-0.56px]">
@@ -324,6 +331,7 @@ export default function MainPage() {
             onSpace={addSpace}
             onBackspace={backspace}
             onClear={clearMessage}
+            disabled={isTelegramOpen}
             texts={{
               space: t.main.keyboard.space,
               clearMessage: t.main.keyboard.clearMessage,
